@@ -2,7 +2,7 @@
 adjust
 ======
 
-**adjust** is commad-line-interface for automatically determine the detector pixel size, adjust focus, align rotation axis tilt/pitch and center the rotation axis in the middle of the detector field of view.  
+**adjust** is commad-line-interface for automatically determines the detector pixel size, adjusts focus, alignes rotation axis tilt/pitch and centers the rotation axis in the middle of the detector field of view.  
 
 Installation
 ============
