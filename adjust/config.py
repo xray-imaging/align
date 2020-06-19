@@ -116,7 +116,7 @@ SECTIONS['epics-pvs'] = {
         'type': str,
         'help': 'sample y pv name'},
     'rotation-pv-name':{
-        'default': '2bmb:m82',
+        'default': '2bma:m82',
         'type': str,
         'help': 'rotation pv name'},
     'sample-x-center-pv-name':{
