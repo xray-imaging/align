@@ -22,6 +22,7 @@ Usage
 =====
 
 ::
+
     $ adjust resolution
     $ adjust focus
     $ adjust center
