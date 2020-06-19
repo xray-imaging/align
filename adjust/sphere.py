@@ -68,7 +68,7 @@ from skimage.feature import register_translation
 from datetime import datetime
 
 from adjust import log
-from adjust import flir
+from adjust import detector
 from adjust import pv
 from adjust import config
 from adjust import util
@@ -76,46 +76,46 @@ from adjust import util
 SPHERE_DIAMETER = 0.5     # in mm
 GAP = 0.02                # empty space between the shere and the edge of the FOV used when measuring roll, in mm 
 
-def adjust(params):
+def adjust(what, params):
 
     global_PVs = pv.init_general_PVs(params)
-
-    params.file_name = None # so we don't run the flir._setup_hdf_writer 
 
     try: 
         detector_sn = global_PVs['Cam1SerialNumber'].get()
         if ((detector_sn == None) or (detector_sn == 'Unknown')):
-            log.info('*** The Point Grey Camera with EPICS IOC prefix %s is down' % camera_prefix)
-            log.info('  *** Failed!')
+            log.error('*** The detector with EPICS IOC prefix %s is down' % params.detector_prefix)
+            log.error('  *** Failed!')
         else:
-            log.info('*** The Point Grey Camera with EPICS IOC prefix %s and serial number %s is on' \
-                        % (camera_prefix, detector_sn))
+            log.info('*** The detector with EPICS IOC prefix %s and serial number %s is on' \
+                        % (params.detector_prefix, detector_sn))
 
-            flir.init(global_PVs, params)
-            flir.set(global_PVs, params) 
-
-            dark_field, white_field = flir.take_dark_and_white(global_PVs, params)
-
-            if (params.resolution==True):
-                find_resolution(params, dark_field, white_field, angle_shift = -0.7)            
-
-            if(params.image_pixel_size==None):
-                log.error('  *** Detector resolution is not determined. Please run tomo adjust --resolution first!')
-                exit()
-            else:
-                if (params.focus==True):
-                    adjust_focus(params)
-                if (params.center==True):
-                    adjust_center(params, dark_field, white_field)
-                if(params.roll==True):
-                    adjust_roll(params, dark_field, white_field, angle_shift = -0.7)
-                if(params.pitch==True):                
-                    adjust_pitch(params, dark_field, white_field, angle_shift = -0.7)
-                if(params.roll==True or params.pitch==True):
-                    # align center again for higher accuracy    
-                    adjust_center(params, dark_field, white_field)
-
+            if (what == 'resolution'):
+                detector.init(global_PVs, params)
+                detector.set(global_PVs, params) 
+                dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
+                find_resolution(params, dark_field, white_field, angle_shift = -0.7)
                 config.update_sphere(params)
+            else:
+                if(params.image_pixel_size==None):
+                    # resolution must be measured at least once  
+                    log.error('  *** Detector resolution is not determined. Please run adjust resolution first!')
+                    time.sleep(2) # to avoid a calling callback function/epics.ca.ChannelAccessException 
+                    exit()
+                else:
+                    dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
+                    if (what == 'focus'):
+                        adjust_focus(params)
+                    if (what == 'center'):
+                        adjust_center(params, dark_field, white_field)
+                    if(what == 'roll'):
+                        adjust_roll(params, dark_field, white_field, angle_shift = -0.7)
+                    if(what == 'pitch'):           
+                        adjust_pitch(params, dark_field, white_field, angle_shift = -0.7)
+                    if(what == 'roll') or (what == 'pitch'):
+                        # align center again for higher accuracy    
+                        adjust_center(params, dark_field, white_field)
+
+                    config.update_sphere(params)
 
     except  KeyError:
         log.error('  *** Some PV assignment failed!')
@@ -135,21 +135,21 @@ def adjust_center(params, dark_field, white_field):
         log.info('  ***  *** moving rotary stage to %f deg position ***' % float(0))
         global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)            
         log.error('  ***  *** acquire sphere at %f deg position ***' % float(0))                                
-        sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)    
+        sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)    
 
         #sphere 1
         log.info('  *** sphere 1')
         log.info('  ***  *** moving rotary stage to %f deg position ***' % float(ang))                
         global_PVs["Rotation"].put(float(ang), wait=True, timeout=600.0)
         log.error('  ***  *** acquire sphere at %f deg position ***' % float(ang))                                 
-        sphere_1 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+        sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
         
         #sphere 2
         log.info('  *** sphere 2')
         log.info('  ***  *** moving rotary stage to %f deg position ***' % float(2*ang))                                
         global_PVs["Rotation"].put(float(2*ang), wait=True, timeout=600.0)
         log.error('  ***  *** acquire sphere at %f deg position ***' % float(2*ang))                                                 
-        sphere_2 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+        sphere_2 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
         # find shifts
         shift0 = register_translation(sphere_1, sphere_0, 100)[0][1]
@@ -206,7 +206,7 @@ def check_center(params, white_field, dark_field):
     global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)
     log.info('  *** acquire sphere at %f deg position ***' % float(0))
 
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)                   
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)                   
     cmass_0 = util.center_of_mass(sphere_0)
     log.warning('  *** center of mass for the centered sphere at 0 deg: [%f,%f] ***' % (cmass_0[1],cmass_0[0]))
 
@@ -224,11 +224,11 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     log.info('  *** moving sphere to the detector border ***')                                                
     global_PVs["SampleXCent"].put(global_PVs["SampleXCent"].get()+global_PVs['Cam1SizeX'].get()/2*params.image_pixel_size/1000-((SPHERE_DIAMETER / 2) + GAP), wait=True, timeout=600.0)
     log.info('  *** acquire sphere at %f deg position ***' % float(0+angle_shift)) 
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)       
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)       
     log.info('  *** moving rotary stage to %f deg position ***' % float(180+angle_shift))                                                            
     global_PVs["Rotation"].put(float(180+angle_shift), wait=True, timeout=600.0)            
     log.info('  *** acquire sphere at %f deg position ***' % float(180+angle_shift)) 
-    sphere_180 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+    sphere_180 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
     cmass_0 = util.center_of_mass(sphere_0)
     cmass_180 = util.center_of_mass(sphere_180)          
@@ -245,12 +245,12 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     
     log.info('  *** find shifts resulting by the roll change ***')                                                            
     log.info('  *** acquire sphere at the current roll position ***')             
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)           
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)           
 
     ang = roll/2 # if roll is too big then ang should be decreased to keep the sphere in the field of view
     log.info('  *** acquire sphere after testing roll change %f ***' % float(global_PVs["SampleRoll"].get()+ang))                                     
     global_PVs["SampleRoll"].put(global_PVs["SampleRoll"].get()+ang, wait=True, timeout=600.0)
-    sphere_1 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+    sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
     shift0 = register_translation(sphere_1, sphere_0, 100)[0][1]            
     shift1 = shift0*np.sin(roll)*(np.cos(roll)*1/np.tan(ang)+np.sin(roll))
@@ -262,7 +262,7 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     
 
     log.info('  *** TEST: acquire sphere at %f deg position ***' % float(0+angle_shift)) 
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)                   
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)                   
     cmass_0 = util.center_of_mass(sphere_0)
     log.info('  *** TEST: center of mass for the sphere at 0 deg (%f,%f) ***' % (cmass_0[1],cmass_0[0]))
 
@@ -278,12 +278,12 @@ def adjust_pitch(params, dark_field, white_field, angle_shift):
     log.info('  *** moving rotary stage to %f deg position ***' % float(0+angle_shift))                                                            
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)                
     log.info('  *** acquire sphere at %f deg position ***' % float(0+angle_shift))             
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)         
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)         
 
     log.info('  *** moving rotary stage to %f deg position ***' % float(0+angle_shift))                                                            
     global_PVs["Rotation"].put(float(180+angle_shift), wait=True, timeout=600.0)            
     log.info('  *** acquire sphere at %f deg position ***' % float(180+angle_shift))             
-    sphere_180 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+    sphere_180 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
     cmass_0 = util.center_of_mass(sphere_0)            
     cmass_180 = util.center_of_mass(sphere_180)   
@@ -298,7 +298,7 @@ def adjust_pitch(params, dark_field, white_field, angle_shift):
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)    
     
     log.info('  *** TEST: acquire sphere at %f deg position ***' % float(0+angle_shift)) 
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)                   
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)                   
     cmass_0 = util.center_of_mass(sphere_0)
     log.info('  *** TEST: center of mass for the sphere at 0 deg (%f,%f) ***' % (cmass_0[1],cmass_0[0]))            
 
@@ -313,13 +313,13 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     log.info('  *** First image at X: %f mm' % (params.sample_in_x))
     log.info('  *** acquire first image')
 
-    sphere_0 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
     second_image_x_position = params.sample_in_x + params.off_axis_position
     log.info('  *** Second image at X: %f mm' % (second_image_x_position))
     global_PVs["SampleX"].put(second_image_x_position, wait=True, timeout=600.0)
     log.info('  *** acquire second image')
-    sphere_1 = util.normalize(flir.take_image(global_PVs, params), white_field, dark_field)
+    sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
     log.info('  *** moving X stage back to %f mm position' % (params.sample_in_x))
     pv.move_sample_in(global_PVs, params)
@@ -330,9 +330,8 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     
     log.warning('  *** found resolution %f um/pixel' % (image_pixel_size))    
     params.image_pixel_size = image_pixel_size
-
-    pv.image_pixel_size_pv_update(global_PVs, params)            
-
+          
+    global_PVs['ImagePixelSize'].put(params.image_pixel_size, wait=True)
 
 def adjust_focus(params):
     
@@ -349,7 +348,7 @@ def adjust_focus(params):
         initpos = global_PVs['Focus'].get()
         curpos = initpos + step*direction
         global_PVs['Focus'].put(curpos, wait=True, timeout=600.0)
-        img = flir.take_image(global_PVs, params)        
+        img = detector.take_image(global_PVs, params)        
         cur_std = np.std(img)
         log.info('  ***   *** Positon: %f Standard deviation: %f ' % (curpos,cur_std))
         if(cur_std > max_std): # store max std

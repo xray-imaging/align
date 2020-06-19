@@ -80,7 +80,6 @@ def wait_pv(pv, wait_val, max_timeout_sec=-1):
         else:
             return True
 
-
 def init_general_PVs(params):
 
     global_PVs = {}
@@ -109,9 +108,13 @@ def init_general_PVs(params):
 
     global_PVs['Focus'] = PV(params.focus_pv_name + '.VAL')
 
+    global_PVs['ImagePixelSize'] = PV(params.image_pixel_size_pv_name + '.VAL')
+
     # detector pv's
     camera_prefix = params.detector_prefix + 'cam1:'
-    # general PV's
+
+    global_PVs['CamManufacturer']      = PV(camera_prefix + 'Manufacturer_RBV')
+    global_PVs['CamModel']             = PV(camera_prefix + 'Model_RBV')
     global_PVs['Cam1SerialNumber'] = PV(camera_prefix + 'SerialNumber_RBV')
     global_PVs['Cam1ImageMode'] = PV(camera_prefix + 'ImageMode')
     global_PVs['Cam1ArrayCallbacks'] = PV(camera_prefix + 'ArrayCallbacks')
@@ -139,7 +142,11 @@ def init_general_PVs(params):
     global_PVs['Image'] = PV(image_prefix + 'ArrayData')
     global_PVs['Cam1Display'] = PV(image_prefix + 'EnableCallbacks')
 
-    if (params.detector_prefix == '2bmbSP1:'):
+    manufacturer = global_PVs['CamManufacturer'].get(as_string=True)
+    model = global_PVs['CamModel'].get(as_string=True)
+
+    if model == 'Oryx ORX-10G-51S5M':
+        log.info('Detector %s model %s:' % (manufacturer, model))
         global_PVs['Cam1AcquireTimeAuto'] = PV(params.detector_prefix + 'AcquireTimeAuto')
         global_PVs['Cam1FrameRateOnOff'] = PV(params.detector_prefix + 'FrameRateEnable')
 
@@ -150,7 +157,7 @@ def init_general_PVs(params):
         global_PVs['Cam1TriggerActivation'] = PV(params.detector_prefix + 'TriggerActivation')
     
     else:
-        log.error('Detector %s is not supported' % params.detector_prefix)
+        log.error('Detector %s model %s is not supported' % (manufacturer, model))
         return None        
 
     return global_PVs
@@ -160,11 +167,10 @@ def open_shutters(global_PVs, params):
     log.info(' ')
     log.info('  *** open_shutters')
     if params.testing:
-        log.warning('  *** testing mode - shutters are deactivated during the scans !!!!')
+        log.warning('  *** testing mode - shutters are deactivated !!!!')
     else:
-        global_PVs['ShutterOpen'].put(params.shutter_open_value, wait=True)
-        wait_pv(global_PVs['ShutterStatus'], params.shutter_open_value)
-        time.sleep(3)
+        global_PVs['ShutterOpen'].put(str(params.shutter_open_value), wait=True)
+        wait_pv(global_PVs['ShutterStatus'], params.shutter_status_open_value)
         log.info('  *** open_shutter: Done!') 
 
 def close_shutters(global_PVs, params):
@@ -175,7 +181,7 @@ def close_shutters(global_PVs, params):
         log.warning('  *** testing mode - shutters are deactivated during the scans !!!!')
     else:
         global_PVs['ShutterClose'].put(params.shutter_close_value, wait=True)
-        wait_pv(global_PVs['ShutterStatus'], params.shutter_close_value)
+        wait_pv(global_PVs['ShutterStatus'], params.shutter_status_close_value)
         log.info('  *** close_shutter: Done!')
 
 
@@ -185,12 +191,12 @@ def move_sample_out(global_PVs, params):
 
     log.info('move_sample_out axis: %s', axis)
     if axis in ('horizontal', 'both'):
-        position = str(params.sample_out_x)
+        position = params.sample_out_x
         log.info('      *** *** Move Sample X in at: %f' % position)
         global_PVs['SampleX'].put(position, wait=True)
 
     if axis in ('vertical', 'both'):
-        position = str(params.sample_out_y)
+        position = params.sample_out_y
         log.info('      *** *** Move Sample Y in at: %f' % position)
         global_PVs['SampleY'].put(position, wait=True)
 
@@ -201,11 +207,11 @@ def move_sample_in(global_PVs, params):
 
     log.info('move_sample_in axis: %s', axis)
     if axis in ('horizontal', 'both'):
-        position = str(params.sample_in_x)
+        position = params.sample_in_x
         log.info('      *** *** Move Sample X in at: %f' % position)
         global_PVs['SampleX'].put(position, wait=True)
 
     if axis in ('vertical', 'both'):
-        position = str(params.sample_in_y)
+        position = params.sample_in_y
         log.info('      *** *** Move Sample Y in at: %f' % position)
         global_PVs['SampleY'].put(position, wait=True)

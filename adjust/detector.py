@@ -66,8 +66,9 @@ DetectorAcquire = 1
 
 Recursive_Filter_Type = 'RecursiveAve'
 
+
 def init(global_PVs, params):
-    if (camera_prefix == '2bmbSP1:'):   
+    if (params.detector_prefix == '2bmbSP1:'):   
         log.info(' ')                
         log.info('  *** init FLIR camera')
         log.info('  *** *** set detector to idle')
@@ -91,12 +92,12 @@ def init(global_PVs, params):
         log.info('  *** *** set cam acquire: done')
         log.info('  *** init FLIR camera: Done!')
     else:
-        log.error('Detector %s is not supported' % camera_prefix)
+        log.error('Detector %s is not supported' % params.detector_prefix)
         return
 
 def set(global_PVs, params):
 
-    if (camera_prefix == '2bmbSP1:'):
+    if (params.detector_prefix == '2bmbSP1:'):
         log.info(' ')
         log.info('  *** setup FLIR camera')
 
@@ -123,7 +124,7 @@ def set(global_PVs, params):
         log.info('  *** setup FLIR camera: Done!')
     
     else:
-        log.error('Detector %s is not supported' % camera_prefix)
+        log.error('Detector %s is not supported' % params.detector_prefix)
         return
 
 def take_image(global_PVs, params):

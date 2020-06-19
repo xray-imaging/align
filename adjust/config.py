@@ -83,26 +83,6 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'Verbose output',
         'action': 'store_true'},
-    'center': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
-    'pitch': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
-    'roll': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
-    'focus': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
-    'resolution': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
     'ask': {
         'default': False,
         'help': ' ',
@@ -156,20 +136,32 @@ SECTIONS['epics-pvs'] = {
         'type': str,
         'help': 'sample roll pv name'},
     'focus-pv-name':{
-        'default': '2bma:m23',
+        'default': '2bma:m41',
         'type': str,
         'help': 'focus pv name'},
+    'image-pixel-size-pv-name':{
+        'default': '2bma:TomoScan:ImagePixelSize',
+        'type': str,
+        'help': 'image pixel sizef pv name'},
         }
 
 SECTIONS['shutter'] = {
     'shutter-close-value':{
         'default': '1',
         'type': int,
-        'help': 'shutter close value'},
+        'help': 'value to set the shutter-close-pv-name to close the shutter'},
     'shutter-open-value':{
         'default': '1',
         'type': int,
-        'help': 'shutter open value'},
+        'help': 'value to set the shutter-open-pv-name to open the shutter'},
+    'shutter-status-open-value':{
+        'default': '1',
+        'type': int,
+        'help': 'shutter open status value'},
+    'shutter-status-close-value':{
+        'default': '0',
+        'type': int,
+        'help': 'shutter close status value'},
         }
 
 SECTIONS['detector'] = {
@@ -181,11 +173,11 @@ SECTIONS['detector'] = {
         'default': 0.1,
         'type': float,
         'help': " "},
-    'detector-pixel-size': {
-        'default': 3.45,
+    'image-pixel-size': {
+        'default': None,
         'type': float,
-        'help': " "},
-        }
+        'help': "Detector pixel size in micron/pixel"},
+         }
 
 SECTIONS['sample-motion'] = {
     'sample-in-x': {
@@ -193,7 +185,7 @@ SECTIONS['sample-motion'] = {
         'type': float,
         'help': "Sample position during data collection"},
     'sample-out-x': {
-        'default': 1,
+        'default': 3,
         'type': float,
         'help': "Sample position for white field images"},
     'sample-in-y': {
@@ -201,7 +193,7 @@ SECTIONS['sample-motion'] = {
         'type': float,
         'help': "Sample position during data collection"},
     'sample-out-y': {
-        'default': 1,
+        'default': 3,
         'type': float,
         'help': "Sample position for white field images"},
     'flat-field-axis': {
@@ -212,19 +204,7 @@ SECTIONS['sample-motion'] = {
         }
 
 SECTIONS['sphere'] = {
-    'camera-objective': {
-        'default': None,
-        'type': float,
-        'help': " "},
-    'camera-tube-length': {
-        'default': 1,
-        'type': float,
-        'help': " "},
-    'image-pixel-size': {
-        'default': None,
-        'type': float,
-        'help': "Detector pixel size in micron/pixel"},
-    'rotation-axis-location': {
+   'rotation-axis-location': {
         'default': None,
         'type': float,
         'help': "horizontal location of the rotation axis (pixels)"},

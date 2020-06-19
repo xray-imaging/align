@@ -63,6 +63,7 @@ from adjust import config, __version__
 from adjust import log
 from adjust import pv
 from adjust import sphere
+from adjust import detector
 
 
 def init(args):
@@ -70,36 +71,27 @@ def init(args):
     if not os.path.exists(str(args.config)):
         config.write(args.config)
     else:
-        log.error("{0} already exists".format(args.config))
+        log.warning("{0} already exists".format(args.config))
 
 def run_status(args):
     # scan.dummy_scan(args)
     config.show_configs(args)
 
-def run_adjust(args):    
-    if (args.resolution == True):
-        log.warning('Find resolution')        
-    if (args.focus == True):
-        log.warning('Adjust focus')        
-    if (args.center == True):
-        log.warning('Adjust center')                
-    if (args.roll == True):
-        log.warning('Adjust center and roll')        
-        args.center = True        
-    if (args.pitch == True):
-        log.warning('Adjust center and pitch')        
-        args.center = True        
+def run_resolution(args):
+    sphere.adjust('resolution', args)
 
-    sphere.adjust(args)
+def run_focus(args):
+    sphere.adjust('focus', args)
 
-def run_test(args): 
+def run_center(args):
+    sphere.adjust('center', args)
 
-    log.warning('testing mode')
-    global_PVs = pv.init_general_PVs(params)
- 
-    # pv.open_shutters(global_PVs, args)
-    # pv.close_shutters(global_PVs, args)
-       
+def run_pitch(args):
+    sphere.adjust('pitch', args)
+
+def run_roll(args):
+    sphere.adjust('roll', args)
+
 
 def main():
 
@@ -111,10 +103,13 @@ def main():
     sphere_params = config.SPHERE_PARAMS
 
     cmd_parsers = [
-        ('init',                 init,           (),                             "Create configuration file"),
-        ('status',               run_status,     sphere_params,                  "Show the tomographic scan status"),
-        ('adjust',               run_adjust,     sphere_params,                  "Align center/roll/pitch location manually, or use auto to align everything. "),
-        ('test',               run_test,     sphere_params,                  "Align center/roll/pitch location manually, or use auto to align everything. "),
+        ('init',           init,             (),                             "Create configuration file"),
+        ('status',         run_status,       sphere_params,                  "Show the tomographic scan status"),
+        ('resolution',     run_resolution,   sphere_params,                  "Find the image resolution"),
+        ('focus',          run_focus,        sphere_params,                  "Adjust the scintilltor focus"),
+        ('center',         run_center,       sphere_params,                  "Adjust rotation axis center"),
+        ('pitch',          run_pitch,        sphere_params,                  "Adjust rotation axis pitch"),
+        ('roll',           run_roll,         sphere_params,                  "Adjust rotation axis roll"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')
