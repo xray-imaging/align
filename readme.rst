@@ -90,4 +90,4 @@ To run **adjust** on a different beamline you need to change the EPICS pv names 
                 shutter open status value (default: 1)
     --detector-prefix DETECTOR_PREFIX
 
-or by changing the default pv_name values in the adjust/config.py file
+or by changing the default pv_name values in the adjust/config.py file.
