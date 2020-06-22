@@ -80,11 +80,7 @@ SECTIONS['general'] = {
         'help': 'Verbose output',
         'action': 'store_true'},
     'ask': {
-        'default': False,
-        'help': ' ',
-        'action': 'store_true'},
-    'testing': {
-        'default': False,
+        'default': True,
         'help': ' ',
         'action': 'store_true'},
         }
@@ -105,39 +101,39 @@ SECTIONS['epics-pvs'] = {
     'sample-x-pv-name':{
         'default': '2bma:m49',
         'type': str,
-        'help': 'sample x pv name'},
+        'help': 'sample x motor pv name'},
     'sample-y-pv-name':{
         'default': '2bma:m20',
         'type': str,
-        'help': 'sample y pv name'},
+        'help': 'sample y motor pv name'},
     'rotation-pv-name':{
         'default': '2bma:m82',
         'type': str,
-        'help': 'rotation pv name'},
+        'help': 'sample rotation motor pv name'},
     'sample-x-center-pv-name':{
         'default': '2bmS1:m2',
         'type': str,
-        'help': 'sample x center pv name'},
+        'help': 'sample x center motor pv name'},
     'sample-z-center-pv-name':{
         'default': '2bmS1:m1',
         'type': str,
-        'help': 'sample z center pv name'},
+        'help': 'sample z cente rmotor pv name'},
     'sample-pitch-pv-name':{
         'default': '2bma:m50',
         'type': str,
-        'help': 'sample pitch pv name'},
+        'help': 'sample pitch motor pv name'},
     'sample-roll-pv-name':{
         'default': '2bma:m51',
         'type': str,
-        'help': 'sample roll pv name'},
+        'help': 'sample roll motor pv name'},
     'focus-pv-name':{
         'default': '2bma:m41',
         'type': str,
-        'help': 'focus pv name'},
+        'help': 'focus motor pv name'},
     'image-pixel-size-pv-name':{
         'default': '2bma:TomoScan:ImagePixelSize',
         'type': str,
-        'help': 'image pixel sizef pv name'},
+        'help': 'image pixel size pv name'},
         }
 
 SECTIONS['shutter'] = {

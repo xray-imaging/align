@@ -168,24 +168,20 @@ def open_shutters(global_PVs, params):
 
     log.info(' ')
     log.info('  *** open_shutters')
-    if params.testing:
-        log.warning('  *** testing mode - shutters are deactivated !!!!')
-    else:
-        global_PVs['ShutterOpen'].put(str(params.shutter_open_value), wait=True)
-        wait_pv(global_PVs['ShutterStatus'], params.shutter_status_open_value)
-        log.info('  *** open_shutter: Done!') 
+
+    global_PVs['ShutterOpen'].put(str(params.shutter_open_value), wait=True)
+    wait_pv(global_PVs['ShutterStatus'], params.shutter_status_open_value)
+    log.info('  *** open_shutter: Done!') 
 
 
 def close_shutters(global_PVs, params):
 
     log.info(' ')
     log.info('  *** close_shutters')
-    if params.testing:
-        log.warning('  *** testing mode - shutters are deactivated during the scans !!!!')
-    else:
-        global_PVs['ShutterClose'].put(params.shutter_close_value, wait=True)
-        wait_pv(global_PVs['ShutterStatus'], params.shutter_status_close_value)
-        log.info('  *** close_shutter: Done!')
+
+    global_PVs['ShutterClose'].put(params.shutter_close_value, wait=True)
+    wait_pv(global_PVs['ShutterStatus'], params.shutter_status_close_value)
+    log.info('  *** close_shutter: Done!')
 
 
 def move_sample_out(global_PVs, params):
