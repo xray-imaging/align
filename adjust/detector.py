@@ -47,24 +47,14 @@
 Detector lib for areadetector FLIR Oryx cameras.
 """
 
-import sys
-import json
 import time
-import h5py
-import traceback
 import numpy as np
 
 from adjust import pv
 from adjust import log
 
-# FrameTypeData = 0
-# FrameTypeDark = 1
-# FrameTypeWhite = 2
-
 DetectorIdle = 0
 DetectorAcquire = 1
-
-Recursive_Filter_Type = 'RecursiveAve'
 
 
 def init(global_PVs, params):
@@ -94,6 +84,7 @@ def init(global_PVs, params):
     else:
         log.error('Detector %s is not supported' % params.detector_prefix)
         return
+
 
 def set(global_PVs, params):
 
@@ -126,6 +117,7 @@ def set(global_PVs, params):
     else:
         log.error('Detector %s is not supported' % params.detector_prefix)
         return
+
 
 def take_image(global_PVs, params):
 
@@ -161,6 +153,7 @@ def take_image(global_PVs, params):
     img_uint = np.mod(img, 2**pixel_f)
 
     return img_uint
+
 
 def take_dark_and_white(global_PVs, params):
     pv.close_shutters(global_PVs, params)

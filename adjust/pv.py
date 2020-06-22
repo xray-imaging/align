@@ -80,6 +80,7 @@ def wait_pv(pv, wait_val, max_timeout_sec=-1):
         else:
             return True
 
+
 def init_general_PVs(params):
 
     global_PVs = {}
@@ -162,6 +163,7 @@ def init_general_PVs(params):
 
     return global_PVs
 
+
 def open_shutters(global_PVs, params):
 
     log.info(' ')
@@ -172,6 +174,7 @@ def open_shutters(global_PVs, params):
         global_PVs['ShutterOpen'].put(str(params.shutter_open_value), wait=True)
         wait_pv(global_PVs['ShutterStatus'], params.shutter_status_open_value)
         log.info('  *** open_shutter: Done!') 
+
 
 def close_shutters(global_PVs, params):
 

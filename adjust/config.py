@@ -49,18 +49,14 @@ adjust config file
 
 import os
 import sys
-import shutil
-import pathlib
 import argparse
 import configparser
-import h5py
+
 import numpy as np
 
 from collections import OrderedDict
 
 from adjust import log
-from adjust import util
-from adjust import __version__
 
 home = os.path.expanduser("~")
 LOGS_HOME = os.path.join(home, 'logs')
@@ -92,7 +88,6 @@ SECTIONS['general'] = {
         'help': ' ',
         'action': 'store_true'},
         }
-
 
 SECTIONS['epics-pvs'] = {
     'shutter-open-pv-name':{
@@ -353,51 +348,6 @@ def write(config_file, args=None, sections=None):
         config.write(f)
 
 
-def write_hdf(args=None, sections=None):
-    """
-    Write in the hdf raw data file the content of *config_file* with values from *args* 
-    if they are specified, otherwise use the defaults. If *sections* are specified, 
-    write values from *args* only to those sections, use the defaults on the remaining ones.
-    """
-    if (args == None):
-        log.warning("  *** Not saving log data to the HDF file.")
-
-    else:
-        hdf_fname = args.file_path + os.sep + args.file_name + '.h5'
-
-        with h5py.File(hdf_fname,'r+') as hdf_file:
-            #If the group we will write to already exists, remove it
-            if hdf_file.get('/process/acquisition/tomo-scan-2bm-' + __version__):
-                del(hdf_file['/process/acquisition/tomo-scan-2bm-' + __version__])
-            #dt = h5py.string_dtype(encoding='ascii')
-            log.info("  *** tomopy.conf parameter written to /process/acquisition/tomo-scan-2bm-%s in file %s " % (__version__, args.file_name))
-            config = configparser.ConfigParser()
-            for section in SECTIONS:
-                config.add_section(section)
-                for name, opts in SECTIONS[section].items():
-                    if args and sections and section in sections and hasattr(args, name.replace('-', '_')):
-                        value = getattr(args, name.replace('-', '_'))
-                        if isinstance(value, list):
-                            # print(type(value), value)
-                            value = ', '.join(value)
-                    else:
-                        value = opts['default'] if opts['default'] is not None else ''
-
-                    prefix = '# ' if value is '' else ''
-
-                    if name != 'config':
-                        dataset = '/process' + '/acquisition/tomo-scan-2bm-' + __version__ + '/' + section + '/'+ name
-                        dset_length = len(str(value)) * 2 if len(str(value)) > 5 else 10
-                        dt = 'S{0:d}'.format(dset_length)
-                        hdf_file.require_dataset(dataset, shape=(1,), dtype=dt)
-                        log.info(name + ': ' + str(value))
-                        try:
-                            hdf_file[dataset][0] = np.string_(str(value))
-                        except TypeError:
-                            print(value)
-                            raise TypeError
-
-
 def show_configs(args):
     """Log all values set in the args namespace.
 
@@ -406,7 +356,7 @@ def show_configs(args):
     """
     args = args.__dict__
 
-    log.warning('tomo scan status start')
+    log.warning('adjust status start')
     for section, name in zip(SECTIONS, NICE_NAMES):
         entries = sorted((k for k in args.keys() if k.replace('_', '-') in SECTIONS[section]))
 
@@ -418,7 +368,7 @@ def show_configs(args):
                 value = args[entry] if args[entry] is not None else "-"
                 log.info("  {:<16} {}".format(entry, value))
 
-    log.warning('tomo scan status end')
+    log.warning('adjust status end')
 
 
 def update_sphere(args):

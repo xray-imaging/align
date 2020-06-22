@@ -45,8 +45,8 @@
 
 '''
     adjust custom logger
-    
 '''
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,6 @@ class ColoredLogFormatter(logging.Formatter):
         self.__YELLOW = '\033[33m'
         self.__ENDC = '\033[0m'
         super().__init__(fmt, datefmt, style)
-    
     
     def formatMessage(self,record):
         if record.levelname=='INFO':

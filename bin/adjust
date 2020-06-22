@@ -50,20 +50,14 @@ Automatic determinato of the detector pixel size, focus, alignment rotation axis
 """
 
 import os
-import re
 import sys
 import argparse
-import logging
-import time
-import shutil
-import pathlib
+
 from datetime import datetime
 
 from adjust import config, __version__
 from adjust import log
-from adjust import pv
 from adjust import sphere
-from adjust import detector
 
 
 def init(args):
@@ -74,7 +68,6 @@ def init(args):
         log.warning("{0} already exists".format(args.config))
 
 def run_status(args):
-    # scan.dummy_scan(args)
     config.show_configs(args)
 
 def run_resolution(args):
@@ -104,7 +97,7 @@ def main():
 
     cmd_parsers = [
         ('init',           init,             (),                             "Create configuration file"),
-        ('status',         run_status,       sphere_params,                  "Show the tomographic scan status"),
+        ('status',         run_status,       sphere_params,                  "Show the adjust cli status"),
         ('resolution',     run_resolution,   sphere_params,                  "Find the image resolution"),
         ('focus',          run_focus,        sphere_params,                  "Adjust the scintilltor focus"),
         ('center',         run_center,       sphere_params,                  "Adjust rotation axis center"),

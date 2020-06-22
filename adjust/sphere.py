@@ -48,24 +48,10 @@ Module for sphere alignment.
 """
 
 import sys
-import json
 import time
-import h5py
-import shutil
-import os
-import argparse
-
-import traceback
 import numpy as np
-import pathlib
-import signal
 
-import matplotlib.pylab as pl
-import matplotlib.widgets as wdg
-
-from epics import PV
 from skimage.feature import register_translation
-from datetime import datetime
 
 from adjust import log
 from adjust import detector
@@ -75,6 +61,7 @@ from adjust import util
 
 SPHERE_DIAMETER = 0.5     # in mm
 GAP = 0.02                # empty space between the shere and the edge of the FOV used when measuring roll, in mm 
+
 
 def adjust(what, params):
 
@@ -196,6 +183,7 @@ def move_center(params, cmass_0, x, y):
     global_PVs["SampleX"].put(global_PVs["SampleX"].get()-(cmass_0[1]-x-global_PVs['Cam1SizeX'].get()/2)*params.image_pixel_size/1000, wait=True, timeout=600.0)
 
  
+
 def check_center(params, white_field, dark_field):
 
     global_PVs = pv.init_general_PVs(params)
@@ -332,6 +320,7 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     params.image_pixel_size = image_pixel_size
           
     global_PVs['ImagePixelSize'].put(params.image_pixel_size, wait=True)
+
 
 def adjust_focus(params):
     
