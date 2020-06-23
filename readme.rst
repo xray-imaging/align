@@ -4,6 +4,9 @@ adjust
 
 **adjust** is commad-line-interface to automatically determine the detector pixel size, to adjust focus, to align rotation axis tilt/pitch and to center the rotation axis in the middle of the detector field of view.  
 
+**adjust** works in combination with a 0.5 mm `tungsten sphere <https://www.vxb.com/0-5mm-Tungsten-Carbide-One-0-0197-inch-Dia-p/0-5mmtungstenballs.htm>`_ that needs to be installed as a sample on top of the rotary stage making sure is in the field of view at least when the rotation axis is at 0 and 10 degrees.
+
+
 Installation
 ============
 
@@ -21,9 +24,12 @@ in a prepared virtualenv or as root for system-wide installation.
 Usage
 =====
 
-::
+First step is to mesaure the image pixel size by running::
 
     $ adjust resolution
+
+then yu can run the other adjustments with::
+
     $ adjust focus
     $ adjust center
     $ adjust roll
@@ -86,4 +92,4 @@ To run **adjust** on a different beamline you need to change the EPICS pv names 
                 shutter open status value (default: 1)
     --detector-prefix DETECTOR_PREFIX
 
-or by changing the default pv_name values in the adjust/config.py file
+or by changing the default pv_name values in the adjust/config.py file.
