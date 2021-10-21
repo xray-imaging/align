@@ -58,7 +58,8 @@ from adjust import detector
 from adjust import pv
 from adjust import config
 from adjust import util
-
+import matplotlib.pyplot as plt
+    
 SPHERE_DIAMETER = 0.5     # in mm
 GAP = 0.02                # empty space between the shere and the edge of the FOV used when measuring roll, in mm 
 
@@ -80,6 +81,8 @@ def adjust(what, params):
                 detector.init(global_PVs, params)
                 detector.set(global_PVs, params) 
                 dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
+                plt.imshow(white_field)
+                plt.show()
                 find_resolution(params, dark_field, white_field, angle_shift = -0.7)
                 config.update_sphere(params)
             else:
@@ -302,13 +305,16 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     log.info('  *** acquire first image')
 
     sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-
+    plt.imshow(sphere_0)
+    plt.show()
     second_image_x_position = params.sample_in_x + params.off_axis_position
     log.info('  *** Second image at X: %f mm' % (second_image_x_position))
     global_PVs["SampleX"].put(second_image_x_position, wait=True, timeout=600.0)
     log.info('  *** acquire second image')
     sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-
+    plt.imshow(sphere_0)
+    plt.show()
+ 
     log.info('  *** moving X stage back to %f mm position' % (params.sample_in_x))
     pv.move_sample_in(global_PVs, params)
 

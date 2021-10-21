@@ -58,7 +58,7 @@ DetectorAcquire = 1
 
 
 def init(global_PVs, params):
-    if (params.detector_prefix == '2bmbSP1:'):   
+    if (params.detector_prefix == '2bmbSP1:' or params.detector_prefix == '2bmbSP2:'):   
         log.info(' ')                
         log.info('  *** init FLIR camera')
         log.info('  *** *** set detector to idle')
@@ -88,7 +88,7 @@ def init(global_PVs, params):
 
 def set(global_PVs, params):
 
-    if (params.detector_prefix == '2bmbSP1:'):
+    if (params.detector_prefix == '2bmbSP1:' or params.detector_prefix == '2bmbSP2:'):
         log.info(' ')
         log.info('  *** setup FLIR camera')
 
