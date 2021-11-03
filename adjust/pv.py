@@ -161,6 +161,13 @@ def init_general_PVs(params):
         log.error('Detector %s model %s is not supported' % (manufacturer, model))
         return None        
 
+    hdf_plugin_prefix = params.hdf_plugin_prefix + 'HDF1:'
+    global_PVs['FPFileNameRBV'] = PV(prefix + 'FileName_RBV')
+
+    tomoscan_prefix = params.tomoscan_prefix
+    pv_start = PV("2bmb:TomoScan:StartScan")
+    global_PVs['TomoScanStart'] = PV(prefix + 'StartScan')
+
     return global_PVs
 
 

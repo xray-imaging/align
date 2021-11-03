@@ -160,6 +160,10 @@ SECTIONS['detector'] = {
         'default': '2bmbSP1:',
         'type': str,
         'help': ''},
+    'hdf-plugin-prefix':{
+        'default': '2bmbSP1:',
+        'type': str,
+        'help': ''},
     'exposure-time': {
         'default': 0.1,
         'type': float,
@@ -192,6 +196,14 @@ SECTIONS['sample-motion'] = {
         'default': 'horizontal',
         'type': str,
         'help': " "},
+    'pos0-y': {
+        'default': 7,
+        'type': float,
+        'help': "stick vertical scan position 0"},
+    'pos1-y': {
+        'default': 12,
+        'type': float,
+        'help': "stick vertical scan position 1"},
         }
 
 SECTIONS['sphere'] = {
@@ -224,9 +236,15 @@ SECTIONS['adjust'] = {
         'help': "Adjust center second angle (deg)"},
     }
 
+SECTIONS['tomoscan'] = {
+    'tomoscan-prefix':{
+        'default': '2bmb:TomoScan:',
+        'type': str,
+        'help': ''},
+    }
 
-SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust')
+SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan')
 
 
 def get_config_name():

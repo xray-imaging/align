@@ -92,20 +92,15 @@ def adjust_roll(params):
 
     log.warning(' *** Adjusting roll ***')
    
-    pv_start = PV("2bmb:TomoScan:StartScan")
-    pv_file_name = PV("2bmbSP2:HDF1:FullFileName_RBV")
-    pixel_size = 0.69*1e-3
-    pos0_y = 7  
-    pos1_y = 12
     global_PVs = pv.init_general_PVs(params)
 
-    global_PVs['SampleY'].put(pos0_y, wait=True)
-    pv_start.put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
-    file_name0 = pv_file_name.get(as_string=True)
+    global_PVs['SampleY'].put(params.pos0_y, wait=True)
+    global_PVs['TomoScanStart'].put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
+    file_name0 = global_PVs['FPFileNameRBV'].get(as_string=True)
 
-    global_PVs['SampleY'].put(pos1_y, wait=True)
-    pv_start.put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
-    file_name1 = pv_file_name.get(as_string=True)
+    global_PVs['SampleY'].put(params.pos1_y, wait=True)
+    global_PVs['TomoScanStart'].put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
+    file_name1 = global_PVs['FPFileNameRBV'].get(as_string=True)
 
     log.info("wait 30 sec until data is transfered to the processing machine")
     time.sleep(30)
@@ -128,7 +123,7 @@ def adjust_roll(params):
                 axis1 = float(line[len('rotation-axis = '):])
                 
     log.info('rotation center for the second file is %f' % axis1)        
-    corr = float((axis1-axis0)*pixel_size/(pos1_y-pos0_y))
+    corr = float((axis1-axis0)*params.pixel_size/(params.pos1_y-params.pos0_y))
     angle = np.arctan(corr)/np.pi*180
     log.info('found roll error %f' % angle)                     
     log.info('correction in mm %f' % corr*68)        
