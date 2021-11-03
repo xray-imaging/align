@@ -83,8 +83,6 @@ def adjust(what, params):
         log.error('  *** Some PV assignment failed!')
         pass
 
-
-
 def adjust_roll(params):
 
     # angle_shift is the correction that is needed to apply to the rotation axis position
@@ -122,8 +120,9 @@ def adjust_roll(params):
             if 'rotation-axis = ' in line:
                 axis1 = float(line[len('rotation-axis = '):])
                 
-    log.info('rotation center for the second file is %f' % axis1)        
-    corr = float((axis1-axis0)*params.pixel_size/(params.pos1_y-params.pos0_y))
+    log.info('rotation center for the second file is %f' % axis1) 
+    pixel_size = global_PVs['ImagePixelSize'].get()      
+    corr = float((axis1-axis0)*pixel_size/(params.pos1_y-params.pos0_y))
     angle = np.arctan(corr)/np.pi*180
     log.info('found roll error %f' % angle)                     
     log.info('correction in mm %f' % corr*68)        

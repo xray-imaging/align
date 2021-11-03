@@ -80,96 +80,82 @@ def wait_pv(pv, wait_val, max_timeout_sec=-1):
         else:
             return True
 
-
 def init_general_PVs(params):
 
     global_PVs = {}
 
-    global_PVs['ShutterOpen'] = PV(params.shutter_open_pv_name  + '.VAL')
-    global_PVs['ShutterClose'] = PV(params.shutter_close_pv_name + '.VAL')
-    global_PVs['ShutterStatus'] = PV(params.shutter_status_pv_name + '.VAL')
-
-    global_PVs['SampleX'] = PV(params.sample_x_pv_name + '.VAL')
-    global_PVs['SampleXSet'] = PV(params.sample_x_pv_name + '.SET')
-    global_PVs['SampleY'] = PV(params.sample_y_pv_name + '.VAL')
-    global_PVs['SampleYSet'] = PV(params.sample_y_pv_name + '.SET')
-
-    global_PVs['Rotation'] = PV(params.rotation_pv_name + '.VAL') 
-    global_PVs['RotationRBV'] = PV(params.rotation_pv_name + '.RBV')
-    global_PVs['RotationCnen'] = PV(params.rotation_pv_name + '.CNEN') 
-    global_PVs['RotationAccl'] = PV(params.rotation_pv_name + '.ACCL') 
-    global_PVs['RotationStop'] = PV(params.rotation_pv_name + '.STOP') 
-    global_PVs['RotationSet'] = PV(params.rotation_pv_name + '.SET') 
-    global_PVs['RotationVelo'] = PV(params.rotation_pv_name + '.VELO') 
-
-    global_PVs['SampleXCent'] = PV(params.sample_x_center_pv_name + '.VAL')
-    global_PVs['SampleZCent'] = PV(params.sample_z_center_pv_name + '.VAL') 
-    global_PVs['SamplePitch'] = PV(params.sample_pitch_pv_name + '.VAL')
-    global_PVs['SampleRoll'] = PV(params.sample_roll_pv_name + '.VAL')
-
-    global_PVs['Focus'] = PV(params.focus_pv_name + '.VAL')
-
-    global_PVs['ImagePixelSize'] = PV(params.image_pixel_size_pv_name + '.VAL')
+    global_PVs['ShutterOpen']               = PV(params.shutter_open_pv_name  + '.VAL')
+    global_PVs['ShutterClose']              = PV(params.shutter_close_pv_name + '.VAL')
+    global_PVs['ShutterStatus']             = PV(params.shutter_status_pv_name + '.VAL')    
+    global_PVs['SampleX']                   = PV(params.sample_x_pv_name + '.VAL')
+    global_PVs['SampleXSet']                = PV(params.sample_x_pv_name + '.SET')
+    global_PVs['SampleY']                   = PV(params.sample_y_pv_name + '.VAL')
+    global_PVs['SampleYSet']                = PV(params.sample_y_pv_name + '.SET')   
+    global_PVs['Rotation']                  = PV(params.rotation_pv_name + '.VAL') 
+    global_PVs['RotationRBV']               = PV(params.rotation_pv_name + '.RBV')
+    global_PVs['RotationCnen']              = PV(params.rotation_pv_name + '.CNEN') 
+    global_PVs['RotationAccl']              = PV(params.rotation_pv_name + '.ACCL') 
+    global_PVs['RotationStop']              = PV(params.rotation_pv_name + '.STOP') 
+    global_PVs['RotationSet']               = PV(params.rotation_pv_name + '.SET') 
+    global_PVs['RotationVelo']              = PV(params.rotation_pv_name + '.VELO')   
+    global_PVs['SampleXCent']               = PV(params.sample_x_center_pv_name + '.VAL')
+    global_PVs['SampleZCent']               = PV(params.sample_z_center_pv_name + '.VAL') 
+    global_PVs['SamplePitch']               = PV(params.sample_pitch_pv_name + '.VAL')
+    global_PVs['SampleRoll']                = PV(params.sample_roll_pv_name + '.VAL')
+    global_PVs['Focus']                     = PV(params.focus_pv_name + '.VAL')
 
     # detector pv's
     camera_prefix = params.detector_prefix + 'cam1:'
 
-    global_PVs['CamManufacturer']      = PV(camera_prefix + 'Manufacturer_RBV')
-    global_PVs['CamModel']             = PV(camera_prefix + 'Model_RBV')
-    global_PVs['Cam1SerialNumber'] = PV(camera_prefix + 'SerialNumber_RBV')
-    global_PVs['Cam1ImageMode'] = PV(camera_prefix + 'ImageMode')
-    global_PVs['Cam1ArrayCallbacks'] = PV(camera_prefix + 'ArrayCallbacks')
-    global_PVs['Cam1AcquirePeriod'] = PV(camera_prefix + 'AcquirePeriod')
-    global_PVs['Cam1SoftwareTrigger'] = PV(camera_prefix + 'SoftwareTrigger') 
-    global_PVs['Cam1AcquireTime'] = PV(camera_prefix + 'AcquireTime')
-    global_PVs['Cam1FrameType'] = PV(camera_prefix + 'FrameType')
-    global_PVs['Cam1AttributeFile'] = PV(camera_prefix + 'NDAttributesFile')
- 
-    global_PVs['Cam1SizeX'] = PV(camera_prefix + 'SizeX')
-    global_PVs['Cam1SizeY'] = PV(camera_prefix + 'SizeY')
-    global_PVs['Cam1NumImages'] = PV(camera_prefix + 'NumImages')
-    global_PVs['Cam1TriggerMode'] = PV(camera_prefix + 'TriggerMode')
-    global_PVs['Cam1Acquire'] = PV(camera_prefix + 'Acquire')
-
-    global_PVs['Cam1SizeX_RBV'] = PV(camera_prefix + 'SizeX_RBV')
-    global_PVs['Cam1SizeY_RBV'] = PV(camera_prefix + 'SizeY_RBV')
-
-    global_PVs['Cam1MaxSizeX_RBV'] = PV(camera_prefix + 'MaxSizeX_RBV')
-    global_PVs['Cam1MaxSizeY_RBV'] = PV(camera_prefix + 'MaxSizeY_RBV')
-    global_PVs['Cam1PixelFormat_RBV'] = PV(camera_prefix + 'PixelFormat_RBV')
-
+    global_PVs['CamManufacturer']           = PV(camera_prefix + 'Manufacturer_RBV')
+    global_PVs['CamModel']                  = PV(camera_prefix + 'Model_RBV')
+    global_PVs['Cam1SerialNumber']          = PV(camera_prefix + 'SerialNumber_RBV')
+    global_PVs['Cam1ImageMode']             = PV(camera_prefix + 'ImageMode')
+    global_PVs['Cam1ArrayCallbacks']        = PV(camera_prefix + 'ArrayCallbacks')
+    global_PVs['Cam1AcquirePeriod']         = PV(camera_prefix + 'AcquirePeriod')
+    global_PVs['Cam1SoftwareTrigger']       = PV(camera_prefix + 'SoftwareTrigger') 
+    global_PVs['Cam1AcquireTime']           = PV(camera_prefix + 'AcquireTime')
+    global_PVs['Cam1FrameType']             = PV(camera_prefix + 'FrameType')
+    global_PVs['Cam1AttributeFile']         = PV(camera_prefix + 'NDAttributesFile')
+    global_PVs['Cam1SizeX']                 = PV(camera_prefix + 'SizeX')
+    global_PVs['Cam1SizeY']                 = PV(camera_prefix + 'SizeY')
+    global_PVs['Cam1NumImages']             = PV(camera_prefix + 'NumImages')
+    global_PVs['Cam1TriggerMode']           = PV(camera_prefix + 'TriggerMode')
+    global_PVs['Cam1Acquire']               = PV(camera_prefix + 'Acquire')
+    global_PVs['Cam1SizeX_RBV']             = PV(camera_prefix + 'SizeX_RBV')
+    global_PVs['Cam1SizeY_RBV']             = PV(camera_prefix + 'SizeY_RBV')
+    global_PVs['Cam1MaxSizeX_RBV']          = PV(camera_prefix + 'MaxSizeX_RBV')
+    global_PVs['Cam1MaxSizeY_RBV']          = PV(camera_prefix + 'MaxSizeY_RBV')
+    global_PVs['Cam1PixelFormat_RBV']       = PV(camera_prefix + 'PixelFormat_RBV')
 
     image_prefix = params.detector_prefix + 'image1:'
-    global_PVs['Image'] = PV(image_prefix + 'ArrayData')
-    global_PVs['Cam1Display'] = PV(image_prefix + 'EnableCallbacks')
+    global_PVs['Image']                     = PV(image_prefix + 'ArrayData')
+    global_PVs['Cam1Display']               = PV(image_prefix + 'EnableCallbacks')
 
     manufacturer = global_PVs['CamManufacturer'].get(as_string=True)
     model = global_PVs['CamModel'].get(as_string=True)
 
     if model == 'Oryx ORX-10G-51S5M':
         log.info('Detector %s model %s:' % (manufacturer, model))
-        global_PVs['Cam1AcquireTimeAuto'] = PV(params.detector_prefix + 'AcquireTimeAuto')
-        global_PVs['Cam1FrameRateOnOff'] = PV(params.detector_prefix + 'FrameRateEnable')
-
-        global_PVs['Cam1TriggerSource'] = PV(params.detector_prefix + 'TriggerSource')
-        global_PVs['Cam1TriggerOverlap'] = PV(params.detector_prefix + 'TriggerOverlap')
-        global_PVs['Cam1ExposureMode'] = PV(params.detector_prefix + 'ExposureMode')
-        global_PVs['Cam1TriggerSelector'] = PV(params.detector_prefix + 'TriggerSelector')
+        global_PVs['Cam1AcquireTimeAuto']   = PV(params.detector_prefix + 'AcquireTimeAuto')
+        global_PVs['Cam1FrameRateOnOff']    = PV(params.detector_prefix + 'FrameRateEnable')
+        global_PVs['Cam1TriggerSource']     = PV(params.detector_prefix + 'TriggerSource')
+        global_PVs['Cam1TriggerOverlap']    = PV(params.detector_prefix + 'TriggerOverlap')
+        global_PVs['Cam1ExposureMode']      = PV(params.detector_prefix + 'ExposureMode')
+        global_PVs['Cam1TriggerSelector']   = PV(params.detector_prefix + 'TriggerSelector')
         global_PVs['Cam1TriggerActivation'] = PV(params.detector_prefix + 'TriggerActivation')
-    
     else:
         log.error('Detector %s model %s is not supported' % (manufacturer, model))
         return None        
 
     hdf_plugin_prefix = params.hdf_plugin_prefix + 'HDF1:'
-    global_PVs['FPFileNameRBV'] = PV(prefix + 'FileName_RBV')
+    global_PVs['FPFileNameRBV']             = PV(prefix + 'FileName_RBV')
 
     tomoscan_prefix = params.tomoscan_prefix
-    pv_start = PV("2bmb:TomoScan:StartScan")
-    global_PVs['TomoScanStart'] = PV(prefix + 'StartScan')
+    global_PVs['TomoScanStart']             = PV(prefix + 'StartScan')
+    global_PVs['ImagePixelSize']            = PV(prefix + 'ImagePixelSize')
 
     return global_PVs
-
 
 def open_shutters(global_PVs, params):
 
@@ -180,7 +166,6 @@ def open_shutters(global_PVs, params):
     wait_pv(global_PVs['ShutterStatus'], params.shutter_status_open_value)
     log.info('  *** open_shutter: Done!') 
 
-
 def close_shutters(global_PVs, params):
 
     log.info(' ')
@@ -189,7 +174,6 @@ def close_shutters(global_PVs, params):
     global_PVs['ShutterClose'].put(params.shutter_close_value, wait=True)
     wait_pv(global_PVs['ShutterStatus'], params.shutter_status_close_value)
     log.info('  *** close_shutter: Done!')
-
 
 def move_sample_out(global_PVs, params):
 
@@ -205,7 +189,6 @@ def move_sample_out(global_PVs, params):
         position = params.sample_out_y
         log.info('      *** *** Move Sample Y in at: %f' % position)
         global_PVs['SampleY'].put(position, wait=True)
-
 
 def move_sample_in(global_PVs, params):
 

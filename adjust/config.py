@@ -130,10 +130,6 @@ SECTIONS['epics-pvs'] = {
         'default': '2bma:m41',
         'type': str,
         'help': 'focus motor pv name'},
-    'image-pixel-size-pv-name':{
-        'default': '2bma:TomoScan:ImagePixelSize',
-        'type': str,
-        'help': 'image pixel size pv name'},
         }
 
 SECTIONS['shutter'] = {
@@ -168,10 +164,6 @@ SECTIONS['detector'] = {
         'default': 0.1,
         'type': float,
         'help': " "},
-    'image-pixel-size': {
-        'default': None,
-        'type': float,
-        'help': "Detector pixel size in micron/pixel"},
          }
 
 SECTIONS['sample-motion'] = {
