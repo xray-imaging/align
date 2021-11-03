@@ -65,11 +65,11 @@ def init(global_PVs, params):
         global_PVs['Cam1Acquire'].put(DetectorIdle)
         pv.wait_pv(global_PVs['Cam1Acquire'], DetectorIdle, 2)
         log.info('  *** *** set detector to idle:  Done')
-        time.sleep(2) 
+        time.sleep(1) 
         log.info('  *** *** set trigger mode to Off')
         global_PVs['Cam1TriggerMode'].put('Off', wait=True)    # 
         log.info('  *** *** set trigger mode to Off: done')
-        time.sleep(7) 
+        time.sleep(1) 
         log.info('  *** *** set image mode to single')
         global_PVs['Cam1ImageMode'].put('Single', wait=True)   # here is where it crashes with (ValueError: invalid literal for int() with base 0: 'Single') Added 7 s delay before
         log.info('  *** *** set image mode to single: done')

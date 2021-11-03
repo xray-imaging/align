@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-
 # #########################################################################
-# Copyright (c) 2019-2020, UChicago Argonne, LLC. All rights reserved.    #
+# Copyright (c) 2020, UChicago Argonne, LLC. All rights reserved.         #
 #                                                                         #
 # Copyright 2019-2020. UChicago Argonne, LLC. This software was produced  #
 # under U.S. Government contract DE-AC02-06CH11357 for Argonne National   #
@@ -46,99 +44,94 @@
 # #########################################################################
 
 """
-Automatic determinato of the detector pixel size, focus, alignment rotation axis tilt/pitch and finding center the rotation axis in the middle of the detector field of view.  .
+Module for roll alignment with a stick
 """
 
-import os
 import sys
-import argparse
+import time
+import numpy as np
 
-from datetime import datetime
+from skimage.registration import phase_cross_correlation
 
-from adjust import config, __version__
 from adjust import log
-from adjust import sphere
-from adjust import stick
+from adjust import detector
+from adjust import pv
+from adjust import config
+from adjust import util
+from epics import PV
+import os
+
+def adjust(what, params):
+
+    global_PVs = pv.init_general_PVs(params)
+
+    try: 
+        detector_sn = global_PVs['Cam1SerialNumber'].get()
+        if ((detector_sn == None) or (detector_sn == 'Unknown')):
+            log.error('*** The detector with EPICS IOC prefix %s is down' % params.detector_prefix)
+            log.error('  *** Failed!')
+        else:
+            log.info('*** The detector with EPICS IOC prefix %s and serial number %s is on' \
+                        % (params.detector_prefix, detector_sn))
+
+            detector.init(global_PVs, params)
+            detector.set(global_PVs, params) 
+            if(what == 'roll'):
+                adjust_roll(params)
+
+    except  KeyError:
+        log.error('  *** Some PV assignment failed!')
+        pass
 
 
-def init(args):
 
-    if not os.path.exists(str(args.config)):
-        config.write(args.config)
-    else:
-        log.warning("{0} already exists".format(args.config))
+def adjust_roll(params):
 
-def run_status(args):
-    config.show_configs(args)
+    # angle_shift is the correction that is needed to apply to the rotation axis position
+    # to align the Z stage on top of the rotary stage with the beam
 
-def run_resolution(args):
-    sphere.adjust('resolution', args)
+    log.warning(' *** Adjusting roll ***')
+   
+    pv_start = PV("2bmb:TomoScan:StartScan")
+    pv_file_name = PV("2bmbSP2:HDF1:FullFileName_RBV")
+    pixel_size = 0.69*1e-3
+    pos0_y = 7  
+    pos1_y = 12
+    global_PVs = pv.init_general_PVs(params)
 
-def run_focus(args):
-    sphere.adjust('focus', args)
+    global_PVs['SampleY'].put(pos0_y, wait=True)
+    pv_start.put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
+    file_name0 = pv_file_name.get(as_string=True)
 
-def run_center(args):
-    sphere.adjust('center', args)
+    global_PVs['SampleY'].put(pos1_y, wait=True)
+    pv_start.put(1, wait=True, timeout=360000) # -1 - no timeout means timeout=0
+    file_name1 = pv_file_name.get(as_string=True)
 
-def run_pitch(args):
-    sphere.adjust('pitch', args)
-
-def run_roll(args):
-    sphere.adjust('roll', args)
-
-def run_stick_roll(args):
-    stick.adjust('roll', args)
-
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', **config.SECTIONS['general']['config'])
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s {}'.format(__version__))
-
-    sphere_params = config.SPHERE_PARAMS
-
-    cmd_parsers = [
-        ('init',           init,             (),                             "Create configuration file"),
-        ('status',         run_status,       sphere_params,                  "Show the adjust cli status"),
-        ('resolution',     run_resolution,   sphere_params,                  "Find the image resolution"),
-        ('focus',          run_focus,        sphere_params,                  "Adjust the scintilltor focus"),
-        ('center',         run_center,       sphere_params,                  "Adjust rotation axis center"),
-        ('pitch',          run_pitch,        sphere_params,                  "Adjust rotation axis pitch"),
-        ('roll',           run_roll,         sphere_params,                  "Adjust rotation axis roll"),
-        ('sroll',          run_stick_roll,   sphere_params,                  "Adjust rotation axis roll with a stick"),
-    ]
-
-    subparsers = parser.add_subparsers(title="Commands", metavar='')
-
-    for cmd, func, sections, text in cmd_parsers:
-        cmd_params = config.Params(sections=sections)
-        cmd_parser = subparsers.add_parser(cmd, help=text, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-        cmd_parser = cmd_params.add_arguments(cmd_parser)
-        cmd_parser.set_defaults(_func=func)
-
-    args = config.parse_known_args(parser, subparser=True)
-
-    # create logger
-    logs_home = args.logs_home
-
-    # make sure logs directory exists
-    if not os.path.exists(logs_home):
-        os.makedirs(logs_home)
-
-    lfname = os.path.join(logs_home, 'adjust_' + datetime.strftime(datetime.now(), "%Y-%m-%d_%H_%M_%S") + '.log')
- 
-    log.setup_custom_logger(lfname)
-    log.info("Saving log at %s" % lfname)
-
-    try:
-        # config.show_configs(args)
-        args._func(args)
-    except RuntimeError as e:
-        log.error(str(e))
-        sys.exit(1)
-
-
-if __name__ == '__main__':
-    main()
+    log.info("wait 30 sec until data is transfered to the processing machine")
+    time.sleep(30)
+    cmd = f"tomopy recon --file-name={file_name0[6:]} --gridrec-padding True --rotation-axis-auto auto --reconstruction-type slice --config-update True"
+    log.info(cmd)
+    os.system(cmd)
+    with open("/home/beams/TOMO/tomopy.conf") as fid:
+        lines = fid.readlines()
+        for line in lines:
+            if 'rotation-axis = ' in line:
+                axis0 = float(line[len('rotation-axis = '):])
+    log.info('rotation center for the first file is %f' % axis0)                     
+    cmd = f"tomopy recon --file-name={file_name1[6:]} --gridrec-padding True --rotation-axis-auto auto --reconstruction-type slice --config-update True"
+    log.info(cmd)    
+    os.system(cmd)
+    with open("/home/beams/TOMO/tomopy.conf") as fid:
+        lines = fid.readlines()
+        for line in lines:
+            if 'rotation-axis = ' in line:
+                axis1 = float(line[len('rotation-axis = '):])
+                
+    log.info('rotation center for the second file is %f' % axis1)        
+    corr = float((axis1-axis0)*pixel_size/(pos1_y-pos0_y))
+    angle = np.arctan(corr)/np.pi*180
+    log.info('found roll error %f' % angle)                     
+    log.info('correction in mm %f' % corr*68)        
+    
+    
 
