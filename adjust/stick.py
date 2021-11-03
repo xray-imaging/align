@@ -105,7 +105,7 @@ def adjust_roll(params):
     cmd = f"tomopy recon --file-name={file_name0[6:]} --gridrec-padding True --rotation-axis-auto auto --reconstruction-type slice --config-update True"
     log.info(cmd)
     os.system(cmd)
-    with open("/home/beams/TOMO/tomopy.conf") as fid:
+    with open(params.tomopy_config) as fid:
         lines = fid.readlines()
         for line in lines:
             if 'rotation-axis = ' in line:
@@ -114,7 +114,7 @@ def adjust_roll(params):
     cmd = f"tomopy recon --file-name={file_name1[6:]} --gridrec-padding True --rotation-axis-auto auto --reconstruction-type slice --config-update True"
     log.info(cmd)    
     os.system(cmd)
-    with open("/home/beams/TOMO/tomopy.conf") as fid:
+    with open(params.tomopy_config) as fid:
         lines = fid.readlines()
         for line in lines:
             if 'rotation-axis = ' in line:

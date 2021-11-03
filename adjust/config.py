@@ -61,6 +61,7 @@ from adjust import log
 home = os.path.expanduser("~")
 LOGS_HOME = os.path.join(home, 'logs')
 CONFIG_FILE_NAME = os.path.join(home, 'adjust.conf')
+TOMOPY_CONFIG_FILE_NAME = os.path.join(home, 'tomopy.conf')
 
 SECTIONS = OrderedDict()
 
@@ -69,6 +70,11 @@ SECTIONS['general'] = {
         'default': CONFIG_FILE_NAME,
         'type': str,
         'help': "File name of configuration file",
+        'metavar': 'FILE'},
+    'tomopy-config': {
+        'default': TOMOPY_CONFIG_FILE_NAME,
+        'type': str,
+        'help': "File name of the tomopy-cli configuration file",
         'metavar': 'FILE'},
     'logs-home': {
         'default': LOGS_HOME,
