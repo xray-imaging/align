@@ -162,10 +162,6 @@ SECTIONS['detector'] = {
         'default': '2bmbSP1:',
         'type': str,
         'help': ''},
-    'hdf-plugin-prefix':{
-        'default': '2bmbSP1:',
-        'type': str,
-        'help': ''},
     'exposure-time': {
         'default': 0.1,
         'type': float,
