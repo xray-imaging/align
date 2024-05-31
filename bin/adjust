@@ -58,6 +58,7 @@ from datetime import datetime
 from adjust import config, __version__
 from adjust import log
 from adjust import sphere
+from adjust import stick
 
 
 def init(args):
@@ -85,6 +86,8 @@ def run_pitch(args):
 def run_roll(args):
     sphere.adjust('roll', args)
 
+def run_stick_roll(args):
+    stick.adjust('roll', args)
 
 def main():
 
@@ -103,6 +106,7 @@ def main():
         ('center',         run_center,       sphere_params,                  "Adjust rotation axis center"),
         ('pitch',          run_pitch,        sphere_params,                  "Adjust rotation axis pitch"),
         ('roll',           run_roll,         sphere_params,                  "Adjust rotation axis roll"),
+        ('sroll',          run_stick_roll,   sphere_params,                  "Adjust rotation axis roll with a stick"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')
