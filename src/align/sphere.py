@@ -51,7 +51,7 @@ import sys
 import time
 import numpy as np
 
-from skimage.feature import register_translation
+from skimage.registration import phase_cross_correlation
 
 from adjust import log
 from adjust import detector
@@ -82,7 +82,7 @@ def adjust(what, params):
                 detector.set(global_PVs, params) 
                 dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
                 plt.imshow(white_field)
-                plt.show()
+                # plt.show()
                 find_resolution(params, dark_field, white_field, angle_shift = -0.7)
                 config.update_sphere(params)
             else:
@@ -142,8 +142,8 @@ def adjust_center(params, dark_field, white_field):
         sphere_2 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
         # find shifts
-        shift0 = register_translation(sphere_1, sphere_0, 100)[0][1]
-        shift1 = register_translation(sphere_2, sphere_1, 100)[0][1]
+        shift0 = phase_cross_correlation(sphere_0, sphere_1, normalization=None, upsample_factor=100)[0][1]
+        shift1 = phase_cross_correlation(sphere_1, sphere_2, normalization=None, upsample_factor=100)[0][1]
         a = ang*np.pi/180
         # x=-(1/4) (d1+d2-2 d1 Cos[a]) Csc[a/2]^2,
         x = -(1/4)*(shift0+shift1-2*shift0*np.cos(a))*1/np.sin(a/2)**2
@@ -243,7 +243,7 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     global_PVs["SampleRoll"].put(global_PVs["SampleRoll"].get()+ang, wait=True, timeout=600.0)
     sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
-    shift0 = register_translation(sphere_1, sphere_0, 100)[0][1]            
+    shift0 = phase_cross_correlation(sphere_1, sphere_0, normalization=None, upsample_factor=100)[0][1]            
     shift1 = shift0*np.sin(roll)*(np.cos(roll)*1/np.tan(ang)+np.sin(roll))
     log.info('  *** the testing roll change corresponds to %f shift in x, calculated resulting roll change gives %f shift in x ***' % (shift0,shift1))             
     log.warning('  *** change roll to %f ***' % float(global_PVs["SampleRoll"].get()+roll-ang))
@@ -305,20 +305,39 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     log.info('  *** acquire first image')
 
     sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-    plt.imshow(sphere_0)
-    plt.show()
+    plt.imshow(sphere_0,cmap='gray')
+    plt.colorbar()
+    # plt.show()
     second_image_x_position = params.sample_in_x + params.off_axis_position
     log.info('  *** Second image at X: %f mm' % (second_image_x_position))
     global_PVs["SampleX"].put(second_image_x_position, wait=True, timeout=600.0)
     log.info('  *** acquire second image')
     sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-    plt.imshow(sphere_0)
-    plt.show()
- 
+    plt.imshow(sphere_1,cmap='gray')
+    plt.colorbar()
+    # plt.show()
+    plt.imshow(sphere_1-sphere_0,cmap='gray')
+    plt.colorbar()
+    # plt.show()
+
+
+    plt.imshow(white_field,cmap='gray')
+    plt.colorbar()
+    # plt.show()
+    plt.imshow(dark_field,cmap='gray')    
+    plt.colorbar()
+    # plt.show()     
+
+    import tifffile
+    tifffile.imwrite('/home/beams/2BMB/sphere_0.tiff',sphere_0)   
+    tifffile.imwrite('/home/beams/2BMB/sphere_1.tiff',sphere_1)   
+    
+    
     log.info('  *** moving X stage back to %f mm position' % (params.sample_in_x))
     pv.move_sample_in(global_PVs, params)
 
-    shift = register_translation(sphere_0, sphere_1, 100)
+    shift = phase_cross_correlation(sphere_0, sphere_1, normalization=None, upsample_factor=100)
+    print(shift)
     log.info('  *** shift X: %f, Y: %f' % (shift[0][1],shift[0][0]))
     image_pixel_size =  abs(params.off_axis_position) / np.linalg.norm(shift[0]) * 1000.0
     
@@ -332,14 +351,14 @@ def adjust_focus(params):
     
     global_PVs = pv.init_general_PVs(params)
 
-    step = 1
+    step = 0.05
     
     direction = 1
     max_std = 0
     three_std = np.ones(3)*2**16
     cnt = 0
     decrease_step = False
-    while(step>0.01):
+    while(step>0.0001):
         initpos = global_PVs['Focus'].get()
         curpos = initpos + step*direction
         global_PVs['Focus'].put(curpos, wait=True, timeout=600.0)

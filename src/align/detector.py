@@ -58,7 +58,7 @@ DetectorAcquire = 1
 
 
 def init(global_PVs, params):
-    if (params.detector_prefix == '2bmbSP1:' or params.detector_prefix == '2bmbSP2:'):   
+    if (params.detector_prefix == '2bmSP1:' or params.detector_prefix == '2bmSP2:'):   
         log.info(' ')                
         log.info('  *** init FLIR camera')
         log.info('  *** *** set detector to idle')
@@ -82,13 +82,13 @@ def init(global_PVs, params):
         log.info('  *** *** set cam acquire: done')
         log.info('  *** init FLIR camera: Done!')
     else:
-        log.error('Detector %s is not supported' % params.detector_prefix)
+        log.error('Detecccctor %s is not supported' % params.detector_prefix)
         return
 
 
 def set(global_PVs, params):
 
-    if (params.detector_prefix == '2bmbSP1:' or params.detector_prefix == '2bmbSP2:'):
+    if (params.detector_prefix == '2bmSP1:' or params.detector_prefix == '2bmSP2:'):
         log.info(' ')
         log.info('  *** setup FLIR camera')
 
@@ -150,7 +150,7 @@ def take_image(global_PVs, params):
     else:
         log.error('  ***  *** bit %s format not supported' % pixelFormat)
         exit()
-    img_uint = np.mod(img, 2**pixel_f)
+    img_uint = np.mod(img.astype('int32'), 2**pixel_f).astype('uint16')    
 
     return img_uint
 

@@ -90,7 +90,7 @@ def normalize(arr, flat, dark, cutoff=None, out=None):
     ndarray
         Normalized 2D tomographic data.
     """
-    arr = as_float32(arr)
+    arr = arr.astype('float32')
     l = np.float32(1e-5)
     log.info('  ***  *** image size: [%d, %d]' % (flat.shape[0], flat.shape[1]))
     # flat = np.mean(flat, axis=0, dtype=np.float32)
