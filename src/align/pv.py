@@ -105,9 +105,9 @@ def init_general_PVs(params):
     global_PVs['Focus']                     = PV(params.focus_pv_name + '.VAL')
 
     # detector pv's
-    camera_prefix = params.detector_prefix + 'cam1:'
+    camera_prefix = params.detector_prefix + 'cam1:' 
 
-    global_PVs['CamManufacturer']           = PV(camera_prefix + 'Manufacturer_RBV')
+    global_PVs['CamManufacturer_RBV']       = PV(camera_prefix + 'Manufacturer_RBV')
     global_PVs['CamModel']                  = PV(camera_prefix + 'Model_RBV')
     global_PVs['Cam1SerialNumber']          = PV(camera_prefix + 'SerialNumber_RBV')
     global_PVs['Cam1ImageMode']             = PV(camera_prefix + 'ImageMode')
@@ -132,10 +132,19 @@ def init_general_PVs(params):
     global_PVs['Image']                     = PV(image_prefix + 'ArrayData')
     global_PVs['Cam1Display']               = PV(image_prefix + 'EnableCallbacks')
 
-    manufacturer = global_PVs['CamManufacturer'].get(as_string=True)
+    manufacturer = global_PVs['CamManufacturer_RBV'].get(as_string=True)
     model = global_PVs['CamModel'].get(as_string=True)
 
     if model == 'Oryx ORX-10G-51S5M':
+        log.info('Detector %s model %s:' % (manufacturer, model))
+        global_PVs['Cam1AcquireTimeAuto']   = PV(params.detector_prefix + 'AcquireTimeAuto')
+        global_PVs['Cam1FrameRateOnOff']    = PV(params.detector_prefix + 'FrameRateEnable')
+        global_PVs['Cam1TriggerSource']     = PV(params.detector_prefix + 'TriggerSource')
+        global_PVs['Cam1TriggerOverlap']    = PV(params.detector_prefix + 'TriggerOverlap')
+        global_PVs['Cam1ExposureMode']      = PV(params.detector_prefix + 'ExposureMode')
+        global_PVs['Cam1TriggerSelector']   = PV(params.detector_prefix + 'TriggerSelector')
+        global_PVs['Cam1TriggerActivation'] = PV(params.detector_prefix + 'TriggerActivation')
+    elif model == 'Oryx ORX-10G-310S9M':
         log.info('Detector %s model %s:' % (manufacturer, model))
         global_PVs['Cam1AcquireTimeAuto']   = PV(params.detector_prefix + 'AcquireTimeAuto')
         global_PVs['Cam1FrameRateOnOff']    = PV(params.detector_prefix + 'FrameRateEnable')
@@ -153,7 +162,9 @@ def init_general_PVs(params):
 
     tomoscan_prefix = params.tomoscan_prefix
     global_PVs['TomoScanStart']             = PV(tomoscan_prefix + 'StartScan')
-    global_PVs['ImagePixelSize']            = PV(tomoscan_prefix + 'ImagePixelSize')
+
+    mctoptics_prefix = params.mctoptics_prefix
+    global_PVs['ImagePixelSize']            = PV(mctoptics_prefix + 'ImagePixelSize')
 
     return global_PVs
 

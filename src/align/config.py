@@ -105,35 +105,35 @@ SECTIONS['epics-pvs'] = {
         'type': str,
         'help': 'shutter status pv name'},
     'sample-x-pv-name':{
-        'default': '2bma:m49',
+        'default': '2bmHXP:m1',
         'type': str,
         'help': 'sample x motor pv name'},
     'sample-y-pv-name':{
-        'default': '2bma:m20',
+        'default': '2bmHXP:m3',
         'type': str,
         'help': 'sample y motor pv name'},
     'rotation-pv-name':{
-        'default': '2bma:m82',
+        'default': '2bmb:m102',
         'type': str,
         'help': 'sample rotation motor pv name'},
     'sample-x-center-pv-name':{
-        'default': '2bmS1:m2',
+        'default': '2bmb:m17',
         'type': str,
         'help': 'sample x center motor pv name'},
     'sample-z-center-pv-name':{
-        'default': '2bmS1:m1',
+        'default': '2bmb:m18',
         'type': str,
-        'help': 'sample z cente rmotor pv name'},
+        'help': 'sample z center rmotor pv name'},
     'sample-pitch-pv-name':{
-        'default': '2bma:m50',
+        'default': '2bmHXP:m5',
         'type': str,
         'help': 'sample pitch motor pv name'},
     'sample-roll-pv-name':{
-        'default': '2bma:m51',
+        'default': '2bmHXP:m4',
         'type': str,
         'help': 'sample roll motor pv name'},
     'focus-pv-name':{
-        'default': '2bma:m41',
+        'default': '2bmb:m4',
         'type': str,
         'help': 'focus motor pv name'},
         }
@@ -159,7 +159,7 @@ SECTIONS['shutter'] = {
 
 SECTIONS['detector'] = {
     'detector-prefix':{
-        'default': '2bmbSP1:',
+        'default': '2bmSP2:',
         'type': str,
         'help': ''},
     'exposure-time': {
@@ -182,7 +182,7 @@ SECTIONS['sample-motion'] = {
         'type': float,
         'help': "Sample position during data collection"},
     'sample-out-y': {
-        'default': 3,
+        'default': -3,
         'type': float,
         'help': "Sample position for white field images"},
     'flat-field-axis': {
@@ -217,6 +217,10 @@ SECTIONS['sphere'] = {
         'default': 0.1,
         'type': float,
         'help': "Off axis horizontal position of the sphere used to calculate resolution (mm)"},
+   'image-pixel-size': {
+        'default': None,
+        'type': float,
+        'help': "Image pixel size (um)"},
     }
 
 SECTIONS['adjust'] = {
@@ -237,8 +241,15 @@ SECTIONS['tomoscan'] = {
         'help': ''},
     }
 
-SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan')
+SECTIONS['mctoptics'] = {
+    'mctoptics-prefix':{
+        'default': '2bm:MCTOptics:',
+        'type': str,
+        'help': ''},
+    }
+
+SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan', 'mctoptics')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan', 'mctoptics')
 
 
 def get_config_name():
