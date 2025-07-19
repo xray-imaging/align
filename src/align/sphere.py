@@ -102,12 +102,75 @@ def adjust(what, params):
                     if(what == 'roll') or (what == 'pitch'):
                         # align center again for higher accuracy    
                         adjust_center(params, dark_field, white_field)
+                    if(what == 'x'):
+                        adjust_x(params, dark_field, white_field)
 
                     config.update_sphere(params)
 
     except  KeyError:
         log.error('  *** Some PV assignment failed!')
         pass
+
+def adjust_x(params, dark_field, white_field):
+
+    global_PVs = pv.init_general_PVs(params)
+
+    log.warning(' *** Adjusting center ***')              
+    for ang in [params.find_center_angle_start, params.find_center_angle_end]: 
+        log.warning('  *** take 3 spheres angular %f deg ***' % float(ang))
+
+        #sphere 0
+        log.info('  *** sphere 0')
+        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(0))
+        global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)            
+        log.error('  ***  *** acquire sphere at %f deg position ***' % float(0))                                
+        sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)    
+
+        #sphere 1
+        log.info('  *** sphere 1')
+        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(ang))                
+        global_PVs["Rotation"].put(float(ang), wait=True, timeout=600.0)
+        log.error('  ***  *** acquire sphere at %f deg position ***' % float(ang))                                 
+        sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
+        
+        #sphere 2
+        log.info('  *** sphere 2')
+        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(2*ang))                                
+        global_PVs["Rotation"].put(float(2*ang), wait=True, timeout=600.0)
+        log.error('  ***  *** acquire sphere at %f deg position ***' % float(2*ang))                                                 
+        sphere_2 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
+
+        # find shifts
+        shift0 = phase_cross_correlation(sphere_0, sphere_1, normalization=None, upsample_factor=100)[0][1]
+        shift1 = phase_cross_correlation(sphere_1, sphere_2, normalization=None, upsample_factor=100)[0][1]
+        a = ang*np.pi/180
+        # x=-(1/4) (d1+d2-2 d1 Cos[a]) Csc[a/2]^2,
+        x = -(1/4)*(shift0+shift1-2*shift0*np.cos(a))*1/np.sin(a/2)**2
+        # r = 1/2 Csc[a/2]^2 Csc[a] Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2]
+        r = 1/2*1/np.sin(a/2)**2*1/np.sin(a)*np.sqrt(np.abs((shift0**2+shift1**2-2*shift0*shift1*np.cos(a))*np.sin(a/2)**2))
+        # g = ArcCos[((-d1-d2+2 d1 Cos[a]) Sin[a])/(2 Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2])]
+        g = np.arccos(((-shift0-shift1+2*shift0*np.cos(a))*np.sin(a))/(2*np.sqrt(np.abs((shift0**2+shift1**2-2*shift0*shift1*np.cos(a))*np.sin(a/2)**2))))
+        y = r*np.sin(g)*np.sign(shift0) 
+        
+        # find center of mass
+        cmass_0 = util.center_of_mass(sphere_0)
+
+        log.info('  ')        
+        log.info('  *** position of the initial sphere wrt to the rotation center (%f,%f) ***' % (x,y))
+        log.info('  *** center of mass for the initial sphere (%f,%f) ***' % (cmass_0[1],cmass_0[0]))
+        log.info('  *** moving sphere to the position of the rotation center ***')
+
+        if(params.ask):
+            if util.yes_or_no('   *** Yes or No'):                
+                move_center(params, cmass_0, x, y)
+                check_center(params, white_field, dark_field)
+            else:
+                log.warning(' No motion ')
+                exit()
+
+        else:
+            move_center(params, cmass_0, x, y)
+            check_center(params, white_field, dark_field)
 
 def adjust_center(params, dark_field, white_field):
 
@@ -176,9 +239,9 @@ def move_center(params, cmass_0, x, y):
     global_PVs = pv.init_general_PVs(params)
 
     log.info('  *** moving sample top X to the rotation center ***')
-    global_PVs["SampleXCent"].put(global_PVs["SampleXCent"].get()+x*params.image_pixel_size/1000, wait=True, timeout=5.0)
+    global_PVs["SampleXTop"].put(global_PVs["SampleXTop"].get()+x*params.image_pixel_size/1000, wait=True, timeout=5.0)
     log.info('  *** moving sample top Z to the rotation center ***')
-    global_PVs["SampleZCent"].put(global_PVs["SampleZCent"].get()+y*params.image_pixel_size/1000, wait=True, timeout=5.0)
+    global_PVs["SampleZTop"].put(global_PVs["SampleZTop"].get()+y*params.image_pixel_size/1000, wait=True, timeout=5.0)
     log.info('  *** moving rotation center to the detector center ***')
     global_PVs["SampleX"].put(global_PVs["SampleX"].get()-(cmass_0[1]-x-global_PVs['Cam1SizeX'].get()/2)*params.image_pixel_size/1000, wait=True, timeout=600.0)
 
@@ -210,7 +273,7 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     log.info('  *** moving rotary stage to %f deg position ***' % float(0+angle_shift))                                                
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)    
     log.info('  *** moving sphere to the detector border ***')                                                
-    global_PVs["SampleXCent"].put(global_PVs["SampleXCent"].get()+global_PVs['Cam1SizeX'].get()/2*params.image_pixel_size/1000-((SPHERE_DIAMETER / 2) + GAP), wait=True, timeout=600.0)
+    global_PVs["SampleXTop"].put(global_PVs["SampleXTop"].get()+global_PVs['Cam1SizeX'].get()/2*params.image_pixel_size/1000-((SPHERE_DIAMETER / 2) + GAP), wait=True, timeout=600.0)
     log.info('  *** acquire sphere at %f deg position ***' % float(0+angle_shift)) 
     sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)       
     log.info('  *** moving rotary stage to %f deg position ***' % float(180+angle_shift))                                                            
@@ -229,7 +292,7 @@ def adjust_roll(params, dark_field, white_field, angle_shift):
     log.info('  *** moving rotary stage to %f deg position ***' % float(0+angle_shift))                                                            
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)    
     log.info('  *** moving sphere back to the detector center ***')                                                            
-    global_PVs["SampleXCent"].put(global_PVs["SampleXCent"].get()-(global_PVs['Cam1SizeX'].get()/2*params.image_pixel_size/1000-((SPHERE_DIAMETER / 2) + GAP)), wait=True, timeout=600.0)
+    global_PVs["SampleXTop"].put(global_PVs["SampleXTop"].get()-(global_PVs['Cam1SizeX'].get()/2*params.image_pixel_size/1000-((SPHERE_DIAMETER / 2) + GAP)), wait=True, timeout=600.0)
     
     log.info('  *** find shifts resulting by the roll change ***')                                                            
     log.info('  *** acquire sphere at the current roll position ***')             
@@ -261,7 +324,7 @@ def adjust_pitch(params, dark_field, white_field, angle_shift):
     
     log.warning(' *** Adjusting pitch ***')              
     log.info('  *** acquire sphere after moving it along the beam axis by 1mm ***')             
-    global_PVs["SampleZCent"].put(global_PVs["SampleZCent"].get()-1.0, wait=True, timeout=600.0)            
+    global_PVs["SampleZTop"].put(global_PVs["SampleZTop"].get()-1.0, wait=True, timeout=600.0)            
 
     log.info('  *** moving rotary stage to %f deg position ***' % float(0+angle_shift))                                                            
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)                
@@ -280,7 +343,7 @@ def adjust_pitch(params, dark_field, white_field, angle_shift):
     pitch = np.rad2deg(np.arctan((cmass_180[0] - cmass_0[0])*params.image_pixel_size/1000 / 2.0))
     log.warning('  *** found pitch error: %f' % pitch)
     log.info('  *** acquire sphere back along the beam axis by -1mm ***')             
-    global_PVs["SampleZCent"].put(global_PVs["SampleZCent"].get()+1.0, wait=True, timeout=600.0)
+    global_PVs["SampleZTop"].put(global_PVs["SampleZTop"].get()+1.0, wait=True, timeout=600.0)
     log.warning('  *** change pitch to %f ***' % float(global_PVs["SamplePitch"].get()-pitch))             
     global_PVs["SamplePitch"].put(global_PVs["SamplePitch"].get()-pitch, wait=True, timeout=600.0)
     global_PVs["Rotation"].put(float(0+angle_shift), wait=True, timeout=600.0)    

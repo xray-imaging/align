@@ -116,11 +116,11 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmb:m102',
         'type': str,
         'help': 'sample rotation motor pv name'},
-    'sample-x-center-pv-name':{
+    'sample-x-top-pv-name':{
         'default': '2bmb:m17',
         'type': str,
         'help': 'sample x center motor pv name'},
-    'sample-z-center-pv-name':{
+    'sample-z-top-pv-name':{
         'default': '2bmb:m18',
         'type': str,
         'help': 'sample z center rmotor pv name'},
