@@ -109,13 +109,12 @@ def adjust(what, params):
         log.error('  *** Some PV assignment failed!')
         pass
 
-
 def adjust_center(params, dark_field, white_field):
 
     global_PVs = pv.init_general_PVs(params)
 
     log.warning(' *** Adjusting center ***')              
-    for ang in [params.adjust_center_angle_1, params.adjust_center_angle_2]: 
+    for ang in [params.find_center_angle_start, params.find_center_angle_end]: 
         log.warning('  *** take 3 spheres angular %f deg ***' % float(ang))
 
         #sphere 0
