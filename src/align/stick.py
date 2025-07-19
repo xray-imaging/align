@@ -54,11 +54,11 @@ import cupy as cp
 
 from skimage.registration import phase_cross_correlation
 
-from adjust import log
-from adjust import detector
-from adjust import pv
-from adjust import config
-from adjust import util
+from align import log
+from align import detector
+from align import pv
+from align import config
+from align import util
 from epics import PV
 import os
 import h5py

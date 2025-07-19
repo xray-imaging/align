@@ -50,7 +50,7 @@ Epics PV definitions
 import time
 
 from epics import PV
-from adjust import log
+from align import log
 
 EPSILON = 0.1
 

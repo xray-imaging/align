@@ -44,7 +44,7 @@
 # #########################################################################
 
 """
-adjust config file
+align config file
 """
 
 import os
@@ -56,11 +56,11 @@ import numpy as np
 
 from collections import OrderedDict
 
-from adjust import log
+from align import log
 
 home = os.path.expanduser("~")
 LOGS_HOME = os.path.join(home, 'logs')
-CONFIG_FILE_NAME = os.path.join(home, 'adjust.conf')
+CONFIG_FILE_NAME = os.path.join(home, 'align.conf')
 TOMOPY_CONFIG_FILE_NAME = os.path.join(home, 'tomopy.conf')
 
 SECTIONS = OrderedDict()
@@ -93,15 +93,15 @@ SECTIONS['general'] = {
 
 SECTIONS['epics-pvs'] = {
     'shutter-open-pv-name':{
-        'default': '2bma:A_shutter:open',
+        'default': '2bma:B_shutter:open',
         'type': str,
         'help': 'shutter open pv name'},
     'shutter-close-pv-name':{
-        'default': '2bma:A_shutter:close',
+        'default': '2bma:B_shutter:close',
         'type': str,
         'help': 'shutter close pv name'},
     'shutter-status-pv-name':{
-        'default': 'PA:02BM:STA_A_FES_OPEN_PL',
+        'default': 'PA:02BM:STA_B_SBS_OPEN_PL',
         'type': str,
         'help': 'shutter status pv name'},
     'sample-x-pv-name':{
@@ -128,6 +128,10 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmHXP:m5',
         'type': str,
         'help': 'sample pitch motor pv name'},
+    'sample-lamino-pv-name':{
+        'default': '2bmb:m49',
+        'type': str,
+        'help': 'sample lamino motor pv name'},
     'sample-roll-pv-name':{
         'default': '2bmHXP:m4',
         'type': str,
@@ -223,15 +227,15 @@ SECTIONS['sphere'] = {
         'help': "Image pixel size (um)"},
     }
 
-SECTIONS['adjust'] = {
-    'adjust-center-angle-1': {
+SECTIONS['find'] = {
+    'find-center-angle-start': {
         'default': 10,
         'type': float,
-        'help': "Adjust center first angle (deg)"},
-    'adjust-center-angle-2': {
+        'help': "Find center angle start (deg)"},
+    'find-center-angle-end': {
         'default': 45,
         'type': float,
-        'help': "Adjust center second angle (deg)"},
+        'help': "Find center angle end (deg)"},
     }
 
 SECTIONS['tomoscan'] = {
@@ -248,8 +252,8 @@ SECTIONS['mctoptics'] = {
         'help': ''},
     }
 
-SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan', 'mctoptics')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'adjust', 'tomoscan', 'mctoptics')
+SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'mctoptics')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'mctoptics')
 
 
 def get_config_name():

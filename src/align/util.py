@@ -54,7 +54,7 @@ import numpy as np
 from skimage import filters
 from skimage.measure import regionprops
 
-from adjust import log
+from align import log
 
 
 def center_of_mass(image):

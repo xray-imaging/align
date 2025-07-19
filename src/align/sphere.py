@@ -53,21 +53,19 @@ import numpy as np
 
 from skimage.registration import phase_cross_correlation
 
-from adjust import log
-from adjust import detector
-from adjust import pv
-from adjust import config
-from adjust import util
+from align import log
+from align import detector
+from align import pv
+from align import config
+from align import util
 import matplotlib.pyplot as plt
     
 SPHERE_DIAMETER = 0.5     # in mm
 GAP = 0.02                # empty space between the shere and the edge of the FOV used when measuring roll, in mm 
 
-
 def adjust(what, params):
 
     global_PVs = pv.init_general_PVs(params)
-
     try: 
         detector_sn = global_PVs['Cam1SerialNumber'].get()
         if ((detector_sn == None) or (detector_sn == 'Unknown')):
@@ -341,7 +339,7 @@ def find_resolution(params, dark_field, white_field, angle_shift):
     log.info('  *** shift X: %f, Y: %f' % (shift[0][1],shift[0][0]))
     image_pixel_size =  abs(params.off_axis_position) / np.linalg.norm(shift[0]) * 1000.0
     
-    log.warning('  *** found resolution %f um/pixel' % (image_pixel_size))    
+    log.warning('  *** found resolution %f μm/pixel' % (image_pixel_size))    
     params.image_pixel_size = image_pixel_size
           
     global_PVs['ImagePixelSize'].put(params.image_pixel_size, wait=True)

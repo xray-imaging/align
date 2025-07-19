@@ -1,15 +1,15 @@
-======
-adjust
-======
+=====
+align
+=====
 
 .. image:: tomo_refs.png 
    :width: 480px
    :align: center
    :alt: tomo_user
 
-**adjust** is commad-line-interface to automatically determine the detector pixel size, to adjust focus, to align rotation axis tilt/pitch and to center the rotation axis in the middle of the detector field of view.  
+**align** is commad-line-interface to automatically determine the detector pixel size, to align focus, to align rotation axis tilt/pitch and to center the rotation axis in the middle of the detector field of view.  
 
-**adjust** works in combination with a 0.5 mm `tungsten sphere <https://www.vxb.com/0-5mm-Tungsten-Carbide-One-0-0197-inch-Dia-p/0-5mmtungstenballs.htm>`_ that needs to be installed as a sample on top of the rotary stage making sure is in the field of view at least when the rotation axis is at 0 and 10 degrees.
+**align** works in combination with a 0.5 mm `tungsten sphere <https://www.vxb.com/0-5mm-Tungsten-Carbide-One-0-0197-inch-Dia-p/0-5mmtungstenballs.htm>`_ that needs to be installed as a sample on top of the rotary stage making sure is in the field of view at least when the rotation axis is at 0 and 10 degrees.
 
 
 Installation
@@ -17,47 +17,45 @@ Installation
 
 ::
 
-    $ git clone https://github.com/xray-imaging/adjust.git
-    $ cd adjust
+    $ git clone https://github.com/xray-imaging/align.git
+    $ cd align
     $ python setup.py install
 
 in a prepared virtualenv or as root for system-wide installation.
 
-.. warning::
-    If your python installation is in a location different from #!/usr/bin/env python please edit the first line of the bin/adjust file to match yours.
 
 Usage
 =====
 
 First step is to mesaure the image pixel size by running::
 
-    $ adjust resolution
+    $ align resolution
 
 then yu can run the other adjustments with::
 
-    $ adjust focus
-    $ adjust center
-    $ adjust roll
-    $ adjust pitch
+    $ align focus
+    $ align center
+    $ align roll
+    $ align pitch
 
 to list of all available options::
 
-    $ adjust  -h
+    $ align  -h
 
 
 Configuration File
 ------------------
 
-adjust parameters are stored in **adjust.conf**. You can create a template with::
+align parameters are stored in **align.conf**. You can create a template with::
 
-    $ adjust init
+    $ align init
 
-**adjust.conf** is constantly updated to keep track of the last stored parameters, as initalized by **init** or modified by setting a new option value. 
+**align.conf** is constantly updated to keep track of the last stored parameters, as initalized by **init** or modified by setting a new option value. 
 
 Beamline customization
 ======================
 
-To run **adjust** on a different beamline you need to change the EPICS pv names associated to your instrument. This can be done at run time by setting::
+To run **align** on a different beamline you need to change the EPICS pv names associated to your instrument. This can be done at run time by setting::
 
     --focus-pv-name FOCUS_PV_NAME
                         focus pv name (default: 2bma:m41)
@@ -97,4 +95,4 @@ To run **adjust** on a different beamline you need to change the EPICS pv names 
                 shutter open status value (default: 1)
     --detector-prefix DETECTOR_PREFIX
 
-or by changing the default pv_name values in the adjust/config.py file.
+or by changing the default pv_name values in the align/config.py file.
