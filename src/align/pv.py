@@ -91,6 +91,7 @@ def init_general_PVs(params):
     global_PVs['SampleXSet']                = PV(params.sample_x_pv_name + '.SET')
     global_PVs['SampleY']                   = PV(params.sample_y_pv_name + '.VAL')
     global_PVs['SampleYSet']                = PV(params.sample_y_pv_name + '.SET')   
+    global_PVs['SampleTheta']               = PV(params.sample_theta_pv_name + '.VAL')
     global_PVs['Rotation']                  = PV(params.rotation_pv_name + '.VAL') 
     global_PVs['RotationRBV']               = PV(params.rotation_pv_name + '.RBV')
     global_PVs['RotationCnen']              = PV(params.rotation_pv_name + '.CNEN') 
@@ -98,10 +99,11 @@ def init_general_PVs(params):
     global_PVs['RotationStop']              = PV(params.rotation_pv_name + '.STOP') 
     global_PVs['RotationSet']               = PV(params.rotation_pv_name + '.SET') 
     global_PVs['RotationVelo']              = PV(params.rotation_pv_name + '.VELO')   
-    global_PVs['SampleXTop']               = PV(params.sample_x_top_pv_name + '.VAL')
-    global_PVs['SampleZTop']               = PV(params.sample_z_top_pv_name + '.VAL') 
+    global_PVs['SampleXTop']                = PV(params.sample_x_top_pv_name + '.VAL')
+    global_PVs['SampleZTop']                = PV(params.sample_z_top_pv_name + '.VAL') 
     global_PVs['SamplePitch']               = PV(params.sample_pitch_pv_name + '.VAL')
     global_PVs['SampleRoll']                = PV(params.sample_roll_pv_name + '.VAL')
+    global_PVs['SampleLamino']              = PV(params.sample_lamino_pv_name + '.VAL')
     global_PVs['Focus']                     = PV(params.focus_pv_name + '.VAL')
 
     # detector pv's

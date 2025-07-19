@@ -112,6 +112,10 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmHXP:m3',
         'type': str,
         'help': 'sample y motor pv name'},
+    'sample-theta-pv-name':{
+        'default': '2bmHXP:m6',
+        'type': str,
+        'help': 'sample theta motor pv name'},
     'rotation-pv-name':{
         'default': '2bmb:m102',
         'type': str,
@@ -128,14 +132,14 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmHXP:m5',
         'type': str,
         'help': 'sample pitch motor pv name'},
-    'sample-lamino-pv-name':{
-        'default': '2bmb:m49',
-        'type': str,
-        'help': 'sample lamino motor pv name'},
     'sample-roll-pv-name':{
         'default': '2bmHXP:m4',
         'type': str,
         'help': 'sample roll motor pv name'},
+    'sample-lamino-pv-name':{
+        'default': '2bmb:m49',
+        'type': str,
+        'help': 'sample lamino motor pv name'},
     'focus-pv-name':{
         'default': '2bmb:m4',
         'type': str,
