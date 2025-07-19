@@ -50,8 +50,8 @@ Detector lib for areadetector FLIR Oryx cameras.
 import time
 import numpy as np
 
-from adjust import pv
-from adjust import log
+from align import pv
+from align import log
 
 DetectorIdle = 0
 DetectorAcquire = 1

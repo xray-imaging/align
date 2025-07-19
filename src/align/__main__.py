@@ -55,10 +55,10 @@ import argparse
 
 from datetime import datetime
 
-from adjust import config, __version__
-from adjust import log
-from adjust import sphere
-from adjust import stick
+from align import config, __version__
+from align import log
+from align import sphere
+from align import stick
 
 
 def init(args):
@@ -100,13 +100,13 @@ def main():
 
     cmd_parsers = [
         ('init',           init,             (),                             "Create configuration file"),
-        ('status',         run_status,       sphere_params,                  "Show the adjust cli status"),
+        ('status',         run_status,       sphere_params,                  "Show the align cli status"),
         ('resolution',     run_resolution,   sphere_params,                  "Find the image resolution"),
-        ('focus',          run_focus,        sphere_params,                  "Adjust the scintilltor focus"),
-        ('center',         run_center,       sphere_params,                  "Adjust rotation axis center"),
-        ('pitch',          run_pitch,        sphere_params,                  "Adjust rotation axis pitch"),
-        ('roll',           run_roll,         sphere_params,                  "Adjust rotation axis roll"),
-        ('sroll',          run_stick_roll,   sphere_params,                  "Adjust rotation axis roll with a stick"),
+        ('focus',          run_focus,        sphere_params,                  "Find the scintillator focus"),
+        ('center',         run_center,       sphere_params,                  "Find rotation axis center"),
+        ('pitch',          run_pitch,        sphere_params,                  "Align rotation axis pitch"),
+        ('roll',           run_roll,         sphere_params,                  "Align rotation axis roll"),
+        ('sroll',          run_stick_roll,   sphere_params,                  "Align rotation axis roll with a stick"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')
