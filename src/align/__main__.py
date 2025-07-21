@@ -89,6 +89,12 @@ def run_roll(args):
 def run_stick_roll(args):
     stick.adjust('roll', args)
 
+def run_rotary(args):
+    sphere.adjust('rotary', args)
+
+def run_theta(args):
+    sphere.adjust('theta', args)
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -97,7 +103,9 @@ def main():
                         version='%(prog)s {}'.format(__version__))
 
     sphere_params = config.SPHERE_PARAMS
-
+    rotary_params = config.ROTARY_PARAMS
+    theta_params  = config.THETA_PARAMS
+    
     cmd_parsers = [
         ('init',           init,             (),                             "Create configuration file"),
         ('status',         run_status,       sphere_params,                  "Show the align cli status"),
@@ -107,6 +115,8 @@ def main():
         ('pitch',          run_pitch,        sphere_params,                  "Align rotation axis pitch"),
         ('roll',           run_roll,         sphere_params,                  "Align rotation axis roll"),
         ('sroll',          run_stick_roll,   sphere_params,                  "Align rotation axis roll with a stick"),
+        ('rotary',         run_rotary,       rotary_params,                  "Align rotary stage to be orthogonal to the beam"),
+        ('theta',          run_theta,        theta_params,                   "Align theta stage to be orthogonal to the beam"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')

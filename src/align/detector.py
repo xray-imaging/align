@@ -82,7 +82,7 @@ def init(global_PVs, params):
         log.info('  *** *** set cam acquire: done')
         log.info('  *** init FLIR camera: Done!')
     else:
-        log.error('Detecccctor %s is not supported' % params.detector_prefix)
+        log.error('Detector %s is not supported' % params.detector_prefix)
         return
 
 

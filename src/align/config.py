@@ -174,7 +174,11 @@ SECTIONS['detector'] = {
         'default': 0.1,
         'type': float,
         'help': " "},
-         }
+   'image-pixel-size': {
+        'default': None,
+        'type': float,
+        'help': "Image pixel size (um)"},
+        }
 
 SECTIONS['sample-motion'] = {
     'sample-in-x': {
@@ -225,10 +229,6 @@ SECTIONS['sphere'] = {
         'default': 0.1,
         'type': float,
         'help': "Off axis horizontal position of the sphere used to calculate resolution (mm)"},
-   'image-pixel-size': {
-        'default': None,
-        'type': float,
-        'help': "Image pixel size (um)"},
     }
 
 SECTIONS['find'] = {
@@ -249,6 +249,44 @@ SECTIONS['tomoscan'] = {
         'help': ''},
     }
 
+SECTIONS['rotary_alignment'] = {
+    'angle-start': {
+        'default': 177,
+        'type': float,
+        'help': "Start angle for rotary stage alignment with beam (deg)"},
+    'angle-end': {
+        'default': 182,
+        'type': float,
+        'help': "End angle for rotary stage alignment with beam (deg)"},
+    'angle-step': {
+        'default': 0.1,
+        'type': float,
+        'help': "End angle for rotary stage alignment with beam (deg)"},
+    }
+
+SECTIONS['theta_alignment'] = {
+    'theta-start': {
+        'default': -1,
+        'type': float,
+        'help': "Start angle for sample theta stage alignment with beam (deg)"},
+    'theta-end': {
+        'default': 1,
+        'type': float,
+        'help': "End angle for sample theta stage alignment with beam (deg)"},
+    'theta-step': {
+        'default': 0.1,
+        'type': float,
+        'help': "End angle for sample theta stage alignment with beam (deg)"},
+    'pos0-x': {
+        'default': 0,
+        'type': float,
+        'help': "Sample X position 0 (mm)"},
+    'pos1-x': {
+        'default': 1,
+        'type': float,
+        'help': "Sample X position 1 (mm)"},
+    }
+
 SECTIONS['mctoptics'] = {
     'mctoptics-prefix':{
         'default': '2bm:MCTOptics:',
@@ -256,9 +294,11 @@ SECTIONS['mctoptics'] = {
         'help': ''},
     }
 
-SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'mctoptics')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'mctoptics')
+SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'rotary_alignment', 'theta_alignment', 'mctoptics')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'rotary_alignment', 'theta_alignment', 'mctoptics')
 
+ROTARY_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'tomoscan', 'rotary_alignment', 'mctoptics')
+THETA_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'tomoscan', 'theta_alignment', 'mctoptics')
 
 def get_config_name():
     """Get the command line --config option."""

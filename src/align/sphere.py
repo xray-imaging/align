@@ -74,13 +74,12 @@ def adjust(what, params):
         else:
             log.info('*** The detector with EPICS IOC prefix %s and serial number %s is on' \
                         % (params.detector_prefix, detector_sn))
-
-            if (what == 'resolution'):
-                detector.init(global_PVs, params)
-                detector.set(global_PVs, params) 
-                dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
-                plt.imshow(white_field)
-                # plt.show()
+            detector.init(global_PVs, params)
+            detector.set(global_PVs, params) 
+            dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
+            plt.imshow(white_field)
+            # plt.show()
+            if (what == 'resolution' ):
                 find_resolution(params, dark_field, white_field, angle_shift = -0.7)
                 config.update_sphere(params)
             else:
@@ -102,8 +101,10 @@ def adjust(what, params):
                     if(what == 'roll') or (what == 'pitch'):
                         # align center again for higher accuracy    
                         adjust_center(params, dark_field, white_field)
-                    if(what == 'x'):
-                        adjust_x(params, dark_field, white_field)
+                    if(what == 'rotary'):
+                        adjust_rotary(params, dark_field, white_field)
+                    if(what == 'theta'):
+                        adjust_theta(params, dark_field, white_field)
 
                     config.update_sphere(params)
 
@@ -111,66 +112,119 @@ def adjust(what, params):
         log.error('  *** Some PV assignment failed!')
         pass
 
-def adjust_x(params, dark_field, white_field):
+def adjust_theta(params, dark_field, white_field):
 
     global_PVs = pv.init_general_PVs(params)
 
-    log.warning(' *** Adjusting center ***')              
-    for ang in [params.find_center_angle_start, params.find_center_angle_end]: 
-        log.warning('  *** take 3 spheres angular %f deg ***' % float(ang))
+    log.warning(' *** Adjusting Sample X ***')              
+    angles = np.arange(params.theta_start, params.theta_end, params.theta_step)
+    distances_x =[]
+    for ang in angles:
+        print(ang, params.pos0_x, params.pos1_x)
+        global_PVs["SampleTheta"].put(ang, wait=True, timeout=600.0) 
+        global_PVs["SampleX"].put(params.pos0_x, wait=True, timeout=600.0) 
+        sphere = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field) 
+        cmass = util.center_of_mass(sphere)
+        cmass_pos0_x = float(cmass[1])
+        global_PVs["SampleX"].put(params.pos1_x, wait=True, timeout=600.0) 
+        sphere = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field) 
+        cmass = util.center_of_mass(sphere)
+        cmass_pos1_x = float(cmass[1])
+        distance = (cmass_pos0_x - cmass_pos1_x) * params.image_pixel_size
+        distances_x.append(distance)
 
-        #sphere 0
-        log.info('  *** sphere 0')
-        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(0))
-        global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)            
-        log.error('  ***  *** acquire sphere at %f deg position ***' % float(0))                                
-        sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)    
 
-        #sphere 1
-        log.info('  *** sphere 1')
-        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(ang))                
-        global_PVs["Rotation"].put(float(ang), wait=True, timeout=600.0)
-        log.error('  ***  *** acquire sphere at %f deg position ***' % float(ang))                                 
-        sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-        
-        #sphere 2
-        log.info('  *** sphere 2')
-        log.info('  ***  *** moving rotary stage to %f deg position ***' % float(2*ang))                                
-        global_PVs["Rotation"].put(float(2*ang), wait=True, timeout=600.0)
-        log.error('  ***  *** acquire sphere at %f deg position ***' % float(2*ang))                                                 
-        sphere_2 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
+    # Ensure numpy arrays
+    angles = np.array(angles)
+    distances_x = np.array(distances_x)
 
-        # find shifts
-        shift0 = phase_cross_correlation(sphere_0, sphere_1, normalization=None, upsample_factor=100)[0][1]
-        shift1 = phase_cross_correlation(sphere_1, sphere_2, normalization=None, upsample_factor=100)[0][1]
-        a = ang*np.pi/180
-        # x=-(1/4) (d1+d2-2 d1 Cos[a]) Csc[a/2]^2,
-        x = -(1/4)*(shift0+shift1-2*shift0*np.cos(a))*1/np.sin(a/2)**2
-        # r = 1/2 Csc[a/2]^2 Csc[a] Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2]
-        r = 1/2*1/np.sin(a/2)**2*1/np.sin(a)*np.sqrt(np.abs((shift0**2+shift1**2-2*shift0*shift1*np.cos(a))*np.sin(a/2)**2))
-        # g = ArcCos[((-d1-d2+2 d1 Cos[a]) Sin[a])/(2 Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2])]
-        g = np.arccos(((-shift0-shift1+2*shift0*np.cos(a))*np.sin(a))/(2*np.sqrt(np.abs((shift0**2+shift1**2-2*shift0*shift1*np.cos(a))*np.sin(a/2)**2))))
-        y = r*np.sin(g)*np.sign(shift0) 
-        
-        # find center of mass
-        cmass_0 = util.center_of_mass(sphere_0)
+    # Fit a parabola (degree 2)
+    coeffs = np.polyfit(angles, distances_x, 2)
+    poly = np.poly1d(coeffs)
+    print("Fit coefficients:", coeffs)
 
-        log.info('  ')        
-        log.info('  *** position of the initial sphere wrt to the rotation center (%f,%f) ***' % (x,y))
-        log.info('  *** center of mass for the initial sphere (%f,%f) ***' % (cmass_0[1],cmass_0[0]))
-        log.info('  *** moving sphere to the position of the rotation center ***')
+    # Vertex of the parabola (min or max depending on sign of a)
+    a, b, c = coeffs
+    angle_min = -b / (2 * a)
+    cmass_min = poly(angle_min)
+    print(f"Minimum at angle = {angle_min:.3f}, CoM_x = {cmass_min:.3f}")
 
-        if(params.ask):
-            if util.yes_or_no('   *** Yes or No'):                
-                move_center(params, cmass_0, x, y)
-                check_center(params, white_field, dark_field)
-            else:
-                log.warning(' No motion ')
-                exit()
+    # Generate smooth x values for plotting the parabola
+    angle_fit = np.linspace(min(angles), max(angles), 500)
+    cmass_fit = poly(angle_fit)
 
-        else:
-            move_center(params, cmass_0, x, y)
-            check_center(params, white_field, dark_field)
+    # Plot original data
+    plt.close('all')
+    plt.figure(figsize=(10, 5))
+    plt.plot(angles, distances_x, marker='o', linestyle='-', label='Data')
+
+    # Plot fitted parabola
+    plt.plot(angle_fit, cmass_fit, 'r--', linewidth=2, label='Parabolic Fit')
+
+    # Mark the minimum
+    plt.plot(angle_min, cmass_min, 'ko', label=f'Min: ({angle_min:.2f}, {cmass_min:.2f})')
+    plt.axvline(angle_min, color='gray', linestyle=':', alpha=0.7)
+
+    # Labels and legend
+    plt.xlabel('Angle (degrees)')
+    plt.ylabel('Distance (μm)')
+    plt.title('Measured 1 mm distance in X vs Theta with Parabolic Fit')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.xlim(min(angles), max(angles))
+    plt.show()    
+
+def adjust_rotary(params, dark_field, white_field):
+
+    global_PVs = pv.init_general_PVs(params)
+
+    log.warning(' *** Adjusting Sample X ***')              
+    angles = np.arange(params.angle_start, params.angle_end, params.angle_step)
+    cmass_x = []
+    for ang in angles:
+        global_PVs["Rotation"].put(ang, wait=True, timeout=600.0) 
+        sphere = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field) 
+        cmass = util.center_of_mass(sphere)
+        cmass_float = float(cmass[1])
+        cmass_x.append(cmass_float)
+
+
+    # Fit a parabola (2nd-degree polynomial)
+    coeffs = np.polyfit(angles, cmass_x, 2)
+    poly = np.poly1d(coeffs)
+
+    # Generate smooth fit curve
+    angle_fit = np.linspace(min(angles), max(angles), 500)
+    cmass_fit = poly(angle_fit)
+
+    # Find vertex (minimum point of the parabola)
+    a, b, c = coeffs
+    angle_min = -b / (2 * a)
+    cmass_min = poly(angle_min)
+
+    # Plot original data
+    plt.close('all')
+    plt.figure(figsize=(10, 5))
+    plt.plot(angles, cmass_x, marker='o', linestyle='-', label='Data')
+
+    # Plot parabola fit
+    plt.plot(angle_fit, cmass_fit, 'r--', label='Parabolic Fit')
+
+    # Plot minimum point
+    plt.plot(angle_min, cmass_min, 'ko', label=f'Min: ({angle_min:.2f}, {cmass_min:.2f})')
+    plt.axvline(angle_min, color='k', linestyle=':', alpha=0.5)
+
+    # Labels and layout
+    plt.xlabel('Angle (degrees)')
+    plt.ylabel('Center of Mass X')
+    plt.title('Center of Mass X vs Angle with Parabolic Fit')
+    plt.grid(True)
+    plt.legend()
+    plt.xlim(min(angles), max(angles))
+    plt.tight_layout()
+    plt.show()
+
 
 def adjust_center(params, dark_field, white_field):
 
