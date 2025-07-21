@@ -68,13 +68,13 @@ To run **align** on a different beamline you need to change the EPICS pv names a
                 sample pitch pv name (default: 2bma:m50)
     --sample-roll-pv-name SAMPLE_ROLL_PV_NAME
                 sample roll pv name (default: 2bma:m51)
-    --sample-x-center-pv-name SAMPLE_X_CENTER_PV_NAME
+    --sample-x-top-pv-name sample_x_top_pv_name
                 sample x center pv name (default: 2bmS1:m2)
     --sample-x-pv-name SAMPLE_X_PV_NAME
                 sample x pv name (default: 2bma:m49)
     --sample-y-pv-name SAMPLE_Y_PV_NAME
                 sample y pv name (default: 2bma:m20)
-    --sample-z-center-pv-name SAMPLE_Z_CENTER_PV_NAME
+    --sample-z-top-pv-name sample_z_top_pv_name
                 sample z center pv name (default: 2bmS1:m1)
     --shutter-close-pv-name SHUTTER_CLOSE_PV_NAME
                 shutter close pv name (default: 2bma:A_shutter:close)
