@@ -94,6 +94,7 @@ def adjust(what, params):
                         adjust_focus(params)
                     if (what == 'center'):
                         adjust_center(params, dark_field, white_field)
+                        #adjust_center2(params, dark_field, white_field)
                     if(what == 'roll'):
                         adjust_roll(params, dark_field, white_field, angle_shift = -0.7)
                     if(what == 'pitch'):           
@@ -260,7 +261,7 @@ def adjust_center(params, dark_field, white_field):
         shift1 = phase_cross_correlation(sphere_1, sphere_2, normalization=None, upsample_factor=100)[0][1]
         a = ang*np.pi/180
         # x=-(1/4) (d1+d2-2 d1 Cos[a]) Csc[a/2]^2,
-        x = -(1/4)*(shift0+shift1-2*shift0*np.cos(a))*1/np.sin(a/2)**2
+        x = (1/4)*(shift0+shift1-2*shift0*np.cos(a))*1/np.sin(a/2)**2
         # r = 1/2 Csc[a/2]^2 Csc[a] Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2]
         r = 1/2*1/np.sin(a/2)**2*1/np.sin(a)*np.sqrt(np.abs((shift0**2+shift1**2-2*shift0*shift1*np.cos(a))*np.sin(a/2)**2))
         # g = ArcCos[((-d1-d2+2 d1 Cos[a]) Sin[a])/(2 Sqrt[(d1^2+d2^2-2 d1 d2 Cos[a]) Sin[a/2]^2])]
@@ -287,6 +288,30 @@ def adjust_center(params, dark_field, white_field):
             move_center(params, cmass_0, x, y)
             check_center(params, white_field, dark_field)
 
+
+def check_center2(params, dark_field, white_field):
+
+    global_PVs = pv.init_general_PVs(params)
+
+    log.warning(' *** Adjusting center ***')              
+    log.info('  ***  *** moving rotary stage to %f deg position ***' % float(0))
+    global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)            
+    log.error('  ***  *** acquire sphere at %f deg position ***' % float(0))                                
+    sphere_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)    
+
+    ang = 180
+    log.info('  *** sphere 1')
+    log.info('  ***  *** moving rotary stage to %f deg position ***' % float(ang))                
+    global_PVs["Rotation"].put(float(ang), wait=True, timeout=600.0)
+    log.error('  ***  *** acquire sphere at %f deg position ***' % float(ang))                                 
+    sphere_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
+    
+    shift0 = phase_cross_correlation(sphere_0, sphere_1, normalization=None, upsample_factor=100)[0][1]
+    
+    log.info('  ')        
+    log.info('  *** rotation axis shift in pixels' % (shift0))
+    log.info('  *** rotation axis shift in mm' % (shift0*params.image_pixel_size/1000))
+    
 
 def move_center(params, cmass_0, x, y):
 

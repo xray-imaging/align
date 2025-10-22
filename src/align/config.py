@@ -423,7 +423,7 @@ def show_configs(args):
     """
     args = args.__dict__
 
-    log.warning('adjust status start')
+    log.warning('align status start')
     for section, name in zip(SECTIONS, NICE_NAMES):
         entries = sorted((k for k in args.keys() if k.replace('_', '-') in SECTIONS[section]))
 
@@ -435,7 +435,7 @@ def show_configs(args):
                 value = args[entry] if args[entry] is not None else "-"
                 log.info("  {:<16} {}".format(entry, value))
 
-    log.warning('adjust status end')
+    log.warning('align status end')
 
 
 def update_sphere(args):

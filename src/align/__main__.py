@@ -59,6 +59,7 @@ from align import config, __version__
 from align import log
 from align import sphere
 from align import stick
+from align import sample
 
 
 def init(args):
@@ -71,14 +72,19 @@ def init(args):
 def run_status(args):
     config.show_configs(args)
 
+def run_sample_resolution(args):
+    sample.adjust('resolution', args)
+
+def run_sample_rotation(args):
+    sample.adjust('center', args)
+
+
+# OLD pre-hexapod pre-APS-U routines
 def run_resolution(args):
     sphere.adjust('resolution', args)
 
 def run_focus(args):
     sphere.adjust('focus', args)
-
-def run_center(args):
-    sphere.adjust('center', args)
 
 def run_pitch(args):
     sphere.adjust('pitch', args)
@@ -95,6 +101,10 @@ def run_rotary(args):
 def run_theta(args):
     sphere.adjust('theta', args)
 
+def run_center(args):
+    sphere.adjust('center', args)
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -107,16 +117,18 @@ def main():
     theta_params  = config.THETA_PARAMS
     
     cmd_parsers = [
-        ('init',           init,             (),                             "Create configuration file"),
-        ('status',         run_status,       sphere_params,                  "Show the align cli status"),
-        ('resolution',     run_resolution,   sphere_params,                  "Find the image resolution"),
-        ('focus',          run_focus,        sphere_params,                  "Find the scintillator focus"),
-        ('center',         run_center,       sphere_params,                  "Find rotation axis center"),
-        ('pitch',          run_pitch,        sphere_params,                  "Align rotation axis pitch"),
-        ('roll',           run_roll,         sphere_params,                  "Align rotation axis roll"),
-        ('sroll',          run_stick_roll,   sphere_params,                  "Align rotation axis roll with a stick"),
-        ('rotary',         run_rotary,       rotary_params,                  "Align rotary stage to be orthogonal to the beam"),
-        ('theta',          run_theta,        theta_params,                   "Align theta stage to be orthogonal to the beam"),
+        ('init',                init,                  (),                            "Create configuration file"),
+        ('status',             run_status,            sphere_params,                  "Show the align cli status"),
+        ('resolution',         run_sample_resolution, sphere_params,                  "Find the image resolution"),
+        ('rotation',           run_sample_rotation,   sphere_params,                  "Align rotation axis"),
+        ('old_resolution',     run_resolution,        sphere_params,                  "Find the image resolution"),
+        ('old_focus',          run_focus,             sphere_params,                  "Find the scintillator focus"),
+        ('old_center',         run_center,            sphere_params,                  "Find rotation axis center"),
+        ('old_pitch',          run_pitch,             sphere_params,                  "Align rotation axis pitch"),
+        ('old_roll',           run_roll,              sphere_params,                  "Align rotation axis roll"),
+        ('old_sroll',          run_stick_roll,        sphere_params,                  "Align rotation axis roll with a stick"),
+        ('old_rotary',         run_rotary,            rotary_params,                  "Align rotary stage to be orthogonal to the beam"),
+        ('old_theta',          run_theta,             theta_params,                   "Align theta stage to be orthogonal to the beam"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')

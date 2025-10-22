@@ -93,7 +93,7 @@ def set(global_PVs, params):
         log.info('  *** setup FLIR camera')
 
         global_PVs['Cam1Acquire'].put(DetectorIdle)
-        pv.wait_pv(global_PVs['Cam1Acquire'], DetectorIdle, 2)
+        pv.wait_pv(global_PVs['Cam1Acquire'], DetectorIdle, 0.5)
 
         global_PVs['Cam1TriggerMode'].put('Off', wait=True)
         global_PVs['Cam1TriggerSource'].put('Line2', wait=True)
@@ -109,7 +109,7 @@ def set(global_PVs, params):
 
         global_PVs['Cam1AcquireTime'].put(float(params.exposure_time))
 
-        wait_time_sec = int(params.exposure_time) + 5
+        wait_time_sec = int(params.exposure_time) + 0.5
 
         global_PVs['Cam1TriggerMode'].put('On', wait=True)
         log.info('  *** setup FLIR camera: Done!')
