@@ -138,6 +138,7 @@ def find_rotation_axis(params, dark_field, white_field):
     log.info('  *** Sample pitch:      %f deg' % global_PVs['SamplePitch'].get())
     log.info('  *** Sample X:          %f mm'  % global_PVs['SampleX'].get())
     log.info('  *** Sample Y:          %f mm'  % global_PVs['SampleY'].get())
+    log.info('  *** Sample table Y:    %f mm'  % global_PVs['SampleTableY'].get())
     lens_select = global_PVs['LensSelect'].get(as_string=True)
     lens_name_map  = {'Lens1': 'LensName0', 'Lens2': 'LensName1', 'Lens3': 'LensName2'}
     focus_pv_map   = {'Lens1': 'FocusLens1', 'Lens2': 'FocusLens2', 'Lens3': 'FocusLens3'}

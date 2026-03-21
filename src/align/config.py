@@ -154,6 +154,10 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmb:m8',
         'type': str,
         'help': 'camera 2 rotation motor pv name'},
+    'sample-table-y-pv-name':{
+        'default': '2bmb:m24',
+        'type': str,
+        'help': 'sample table Y motor pv name (coarse Y, supplements hexapod SampleY)'},
         }
 
 SECTIONS['shutter'] = {

@@ -104,6 +104,7 @@ def init_general_PVs(params):
     global_PVs['SamplePitch']               = PV(params.sample_pitch_pv_name + '.VAL')
     global_PVs['SampleRoll']                = PV(params.sample_roll_pv_name + '.VAL')
     global_PVs['SampleLamino']              = PV(params.sample_lamino_pv_name + '.VAL')
+    global_PVs['SampleTableY']             = PV(params.sample_table_y_pv_name + '.VAL')
     global_PVs['LensSelect']                = PV(mctoptics_prefix + 'LensSelect')
     global_PVs['LensName0']                = PV(mctoptics_prefix + 'Lens0Name')
     global_PVs['LensName1']                = PV(mctoptics_prefix + 'Lens1Name')
