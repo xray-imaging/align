@@ -134,10 +134,26 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmb:m49',
         'type': str,
         'help': 'sample lamino motor pv name'},
-    'focus-pv-name':{
+    'focus-lens-1-pv-name':{
+        'default': '2bmb:m2',
+        'type': str,
+        'help': 'focus motor pv name for lens 1'},
+    'focus-lens-2-pv-name':{
+        'default': '2bmb:m3',
+        'type': str,
+        'help': 'focus motor pv name for lens 2'},
+    'focus-lens-3-pv-name':{
         'default': '2bmb:m4',
         'type': str,
-        'help': 'focus motor pv name'},
+        'help': 'focus motor pv name for lens 3'},
+    'camera-rotation-1-pv-name':{
+        'default': '2bmb:m7',
+        'type': str,
+        'help': 'camera 1 rotation motor pv name'},
+    'camera-rotation-2-pv-name':{
+        'default': '2bmb:m8',
+        'type': str,
+        'help': 'camera 2 rotation motor pv name'},
         }
 
 SECTIONS['shutter'] = {

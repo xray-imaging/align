@@ -104,7 +104,13 @@ def init_general_PVs(params):
     global_PVs['SamplePitch']               = PV(params.sample_pitch_pv_name + '.VAL')
     global_PVs['SampleRoll']                = PV(params.sample_roll_pv_name + '.VAL')
     global_PVs['SampleLamino']              = PV(params.sample_lamino_pv_name + '.VAL')
-    global_PVs['Focus']                     = PV(params.focus_pv_name + '.VAL')
+    global_PVs['LensSelect']                = PV(mctoptics_prefix + 'LensSelect')
+    global_PVs['LensName0']                = PV(mctoptics_prefix + 'Lens0Name')
+    global_PVs['LensName1']                = PV(mctoptics_prefix + 'Lens1Name')
+    global_PVs['LensName2']                = PV(mctoptics_prefix + 'Lens2Name')
+    global_PVs['FocusLens1']               = PV(params.focus_lens_1_pv_name + '.VAL')
+    global_PVs['FocusLens2']               = PV(params.focus_lens_2_pv_name + '.VAL')
+    global_PVs['FocusLens3']               = PV(params.focus_lens_3_pv_name + '.VAL')
 
     # detector pv's
     camera_prefix = params.detector_prefix + 'cam1:' 
@@ -167,6 +173,9 @@ def init_general_PVs(params):
 
     mctoptics_prefix = params.mctoptics_prefix
     global_PVs['ImagePixelSize']            = PV(mctoptics_prefix + 'ImagePixelSize')
+    global_PVs['CameraSelect']              = PV(mctoptics_prefix + 'CameraSelect')
+    global_PVs['CameraRotation1']           = PV(params.camera_rotation_1_pv_name + '.VAL')
+    global_PVs['CameraRotation2']           = PV(params.camera_rotation_2_pv_name + '.VAL')
 
     return global_PVs
 
