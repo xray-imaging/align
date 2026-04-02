@@ -51,6 +51,7 @@ import sys
 import time
 import numpy as np
 
+from collections import namedtuple
 from skimage.registration import phase_cross_correlation
 
 from align import log
@@ -58,8 +59,10 @@ from align import detector
 from align import pv
 from align import config
 from align import util
-import matplotlib.pyplot as plt
-    
+
+RotationResult = namedtuple('RotationResult',
+    ['shift_x', 'shift_y', 'shift_top', 'shift_center', 'shift_bottom'])
+
 
 def adjust(what, params):
 
@@ -77,19 +80,18 @@ def adjust(what, params):
             dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
             if (what == 'resolution' ):
                 find_resolution(params, dark_field, white_field)
-                config.update_sphere(params)
+                config.save_sample_params(params)
             else:
                 if(params.image_pixel_size==None):
                     # resolution must be measured at least once  
-                    log.error('  *** Detector resolution is not determined. Please run adjust resolution first!')
+                    log.error('  *** Detector resolution is not determined. Please run align resolution first!')
                     time.sleep(2) # to avoid a calling callback function/epics.ca.ChannelAccessException 
                     exit()
                 else:
-                    dark_field, white_field = detector.take_dark_and_white(global_PVs, params)
                     if (what == 'center'):
-                        adjust_rotation(params, dark_field, white_field)
+                        find_rotation_axis(params, dark_field, white_field)                    
                     
-                    config.update_sphere(params)
+                    config.save_sample_params(params)
 
     except  KeyError:
         log.error('  *** Some PV assignment failed!')
@@ -119,56 +121,95 @@ def find_resolution(params, dark_field, white_field):
     log.info('  *** shift X: %f, Y: %f' % (shift[0][1],shift[0][0]))
     image_pixel_size =  abs(params.off_axis_position) / np.linalg.norm(shift[0]) * 1000.0
     
-    log.warning('  *** found resolution %f μm/pixel' % (image_pixel_size))    
-    params.image_pixel_size = image_pixel_size          
+    log.warning('  *** found resolution %f μm/pixel' % (image_pixel_size))
+    params.image_pixel_size = image_pixel_size
     global_PVs['ImagePixelSize'].put(params.image_pixel_size, wait=True)
+    return image_pixel_size
 
 
-def adjust_rotation(params, dark_field, white_field):
+def _measure_rotation(params, global_PVs, dark_field, white_field):
+    """Acquire 0°/180° images and return rotation axis shifts as a RotationResult.
 
-    global_PVs = pv.init_general_PVs(params)
+    Does not move sample Y, log operator settings, or prompt the user.
+    Caller is responsible for positioning sample Y before calling.
+    """
+    log.info('  *** moving rotary stage to %f deg position ***' % float(0))
+    global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)
+    log.error('  ***  *** acquire sample at %f deg position ***' % float(0))
+    sample_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
 
-    log.warning(' *** Aligning rotation ***')              
-    log.info('  *** sample 0')
-    log.info('  ***  *** moving rotary stage to %f deg position ***' % float(0))
-    global_PVs["Rotation"].put(float(0), wait=True, timeout=600.0)            
-    log.error('  ***  *** acquire sample at %f deg position ***' % float(0))                                
-    sample_0 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)    
-
-    log.info('  *** sample 1')
-    log.info('  ***  *** moving rotary stage to %f deg position ***' % float(180))                
+    log.info('  *** moving rotary stage to %f deg position ***' % float(180))
     global_PVs["Rotation"].put(float(180), wait=True, timeout=600.0)
-    log.error('  ***  *** acquire sample at %f deg position ***' % float(180))                                 
+    log.error('  ***  *** acquire sample at %f deg position ***' % float(180))
     sample_1 = util.normalize(detector.take_image(global_PVs, params), white_field, dark_field)
-    
-    shift0 = phase_cross_correlation(sample_0, sample_1[:,::-1], normalization=None, upsample_factor=100)[0][1]
-    shift0/=2
 
-    shift_top = phase_cross_correlation(sample_0[:100], sample_1[:100,::-1], normalization=None, upsample_factor=100)[0][1]
-    shift_top/=2
+    shift0_result = phase_cross_correlation(sample_0, sample_1[:,::-1], normalization=None, upsample_factor=100)[0]
+    shift_x = shift0_result[1] / 2
+    shift_y = shift0_result[0] / 2
 
-    shift_bottom = phase_cross_correlation(sample_0[-100:], sample_1[-100:,::-1], normalization=None, upsample_factor=100)[0][1]
-    shift_bottom/=2
+    shift_top = phase_cross_correlation(
+        sample_0[:100], sample_1[:100,::-1], normalization=None, upsample_factor=100)[0][1] / 2
+    shift_bottom = phase_cross_correlation(
+        sample_0[-100:], sample_1[-100:,::-1], normalization=None, upsample_factor=100)[0][1] / 2
+    shift_center = phase_cross_correlation(
+        sample_0[sample_0.shape[0]//2-50:sample_0.shape[0]//2+50],
+        sample_1[sample_0.shape[0]//2-50:sample_0.shape[0]//2+50,::-1],
+        normalization=None, upsample_factor=100)[0][1] / 2
 
-    shift_center = phase_cross_correlation(sample_0[sample_0.shape[0]//2-50:sample_0.shape[0]//2+50], 
-        sample_1[sample_0.shape[0]//2-50:sample_0.shape[0]//2+50,::-1], normalization=None, upsample_factor=100)[0][1]
-    shift_center/=2
-
-    log.info('  ')        
-    log.info('  *** rotation axis shift %f pixels ***' % float(shift0))
-    log.info('  *** rotation axis shift %f mm ***' % float(shift0*params.image_pixel_size/1000))
-
-    log.info('  *** Additional values:  ***' )
+    log.info('  *** rotation axis shift X: %f pixels ***' % float(shift_x))
+    log.info('  *** rotation axis shift X: %f mm ***' % float(shift_x * params.image_pixel_size / 1000))
+    log.info('  *** rotation axis shift Y: %f pixels (pitch) ***' % float(shift_y))
+    log.info('  *** rotation axis shift Y: %f mm     (pitch) ***' % float(shift_y * params.image_pixel_size / 1000))
     log.info('  *** rotation axis top    %f pixels ***' % float(shift_top))
     log.info('  *** rotation axis center %f pixels ***' % float(shift_center))
     log.info('  *** rotation axis bottom %f pixels ***' % float(shift_bottom))
 
-    log.info('  *** Move rotation axis to middle?')
+    return RotationResult(shift_x=shift_x, shift_y=shift_y,
+                          shift_top=shift_top, shift_center=shift_center, shift_bottom=shift_bottom)
+
+
+def find_rotation_axis(params, dark_field, white_field):
+
+    global_PVs = pv.init_general_PVs(params)
+
+    camera_select = global_PVs['CameraSelect'].get(as_string=True)
+    if camera_select == 'Camera 1':
+        camera_rotation = global_PVs['CameraRotation1'].get()
+    else:
+        camera_rotation = global_PVs['CameraRotation2'].get()
+    log.warning(' *** Operator settings at start of rotation alignment:')
+    log.info('  *** Camera selected:   %s' % camera_select)
+    log.info('  *** Camera rotation:   %f deg' % camera_rotation)
+    log.info('  *** Sample roll:       %f deg' % global_PVs['SampleRoll'].get())
+    log.info('  *** Sample pitch:      %f deg' % global_PVs['SamplePitch'].get())
+    log.info('  *** Sample X:          %f mm'  % global_PVs['SampleX'].get())
+    log.info('  *** Sample Y:          %f mm'  % global_PVs['SampleY'].get())
+    log.info('  *** Sample table Y:    %f mm'  % global_PVs['SampleTableY'].get())
+    lens_select = global_PVs['LensSelect'].get(as_string=True)
+    lens_name_map  = {'Lens1': 'LensName0', 'Lens2': 'LensName1', 'Lens3': 'LensName2'}
+    focus_pv_map   = {'Lens1': 'FocusLens1', 'Lens2': 'FocusLens2', 'Lens3': 'FocusLens3'}
+    lens_name      = global_PVs[lens_name_map[lens_select]].get(as_string=True)
+    focus_position = global_PVs[focus_pv_map[lens_select]].get()
+    log.info('  *** Lens selected:     %s (%s)' % (lens_select, lens_name))
+    log.info('  *** Focus position:    %f mm'  % focus_position)
+
+    log.warning(' *** Aligning rotation ***')
+    result = _measure_rotation(params, global_PVs, dark_field, white_field)
+
+    log.info('  *** Move rotation axis to %f mm ?' % float(global_PVs["SampleX"].get() + result.shift_x * params.image_pixel_size / 1000))
+    log.info('  *** Move rotation axis to %f pixels ?' % float(global_PVs["SampleX"].get() + result.shift_x))
     if(params.ask):
-        if util.yes_or_no('   *** Yes or No'):                
-            global_PVs["SampleX"].put(global_PVs["SampleX"].get()+shift0*params.image_pixel_size/1000, wait=True, timeout=600.0)            
+        if util.yes_or_no('   *** Yes or No'):
+            global_PVs["SampleX"].put(global_PVs["SampleX"].get() + result.shift_x * params.image_pixel_size / 1000, wait=True, timeout=600.0)
+            global_PVs["SampleXSet"].put(1, wait=True)
+            time.sleep(.2)
+            global_PVs["SampleX"].put(0, wait=True)
+            time.sleep(.2)
+            global_PVs["SampleXSet"].put(0, wait=True)
         else:
             log.warning(' No motion ')
             exit()
+
+    return result
 
 

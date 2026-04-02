@@ -1,6 +1,4 @@
 numpy
 scikit-image
 numexpr
-matplotlib
-cupy
 pyepics

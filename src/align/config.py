@@ -61,7 +61,6 @@ from align import log
 home = os.path.expanduser("~")
 LOGS_HOME = os.path.join(home, 'logs')
 CONFIG_FILE_NAME = os.path.join(home, 'align.conf')
-TOMOPY_CONFIG_FILE_NAME = os.path.join(home, 'tomopy.conf')
 
 SECTIONS = OrderedDict()
 
@@ -70,11 +69,6 @@ SECTIONS['general'] = {
         'default': CONFIG_FILE_NAME,
         'type': str,
         'help': "File name of configuration file",
-        'metavar': 'FILE'},
-    'tomopy-config': {
-        'default': TOMOPY_CONFIG_FILE_NAME,
-        'type': str,
-        'help': "File name of the tomopy-cli configuration file",
         'metavar': 'FILE'},
     'logs-home': {
         'default': LOGS_HOME,
@@ -140,10 +134,30 @@ SECTIONS['epics-pvs'] = {
         'default': '2bmb:m49',
         'type': str,
         'help': 'sample lamino motor pv name'},
-    'focus-pv-name':{
+    'focus-lens-1-pv-name':{
+        'default': '2bmb:m2',
+        'type': str,
+        'help': 'focus motor pv name for lens 1'},
+    'focus-lens-2-pv-name':{
+        'default': '2bmb:m3',
+        'type': str,
+        'help': 'focus motor pv name for lens 2'},
+    'focus-lens-3-pv-name':{
         'default': '2bmb:m4',
         'type': str,
-        'help': 'focus motor pv name'},
+        'help': 'focus motor pv name for lens 3'},
+    'camera-rotation-1-pv-name':{
+        'default': '2bmb:m7',
+        'type': str,
+        'help': 'camera 1 rotation motor pv name'},
+    'camera-rotation-2-pv-name':{
+        'default': '2bmb:m8',
+        'type': str,
+        'help': 'camera 2 rotation motor pv name'},
+    'sample-table-y-pv-name':{
+        'default': '2bmb:m24',
+        'type': str,
+        'help': 'sample table Y motor pv name (coarse Y, supplements hexapod SampleY)'},
         }
 
 SECTIONS['shutter'] = {
@@ -202,44 +216,13 @@ SECTIONS['sample-motion'] = {
         'default': 'horizontal',
         'type': str,
         'help': " "},
-    'pos0-y': {
-        'default': 7,
-        'type': float,
-        'help': "stick vertical scan position 0"},
-    'pos1-y': {
-        'default': 12,
-        'type': float,
-        'help': "stick vertical scan position 1"},
         }
 
-SECTIONS['sphere'] = {
-   'rotation-axis-location': {
-        'default': None,
-        'type': float,
-        'help': "horizontal location of the rotation axis (pixels)"},
-    'rotation-axis-roll': {
-        'default': None,
-        'type': float,
-        'help': "rotation axis roll "},
-    'rotation-axis-pitch': {
-        'default': None,
-        'type': float,
-        'help': "rotation axis pitch"},
+SECTIONS['resolution'] = {
     'off-axis-position': {
         'default': 0.1,
         'type': float,
-        'help': "Off axis horizontal position of the sphere used to calculate resolution (mm)"},
-    }
-
-SECTIONS['find'] = {
-    'find-center-angle-start': {
-        'default': 10,
-        'type': float,
-        'help': "Find center angle start (deg)"},
-    'find-center-angle-end': {
-        'default': 45,
-        'type': float,
-        'help': "Find center angle end (deg)"},
+        'help': "Off axis horizontal position of the sample used to calculate resolution (mm)"},
     }
 
 SECTIONS['tomoscan'] = {
@@ -249,44 +232,6 @@ SECTIONS['tomoscan'] = {
         'help': ''},
     }
 
-SECTIONS['rotary_alignment'] = {
-    'angle-start': {
-        'default': 177,
-        'type': float,
-        'help': "Start angle for rotary stage alignment with beam (deg)"},
-    'angle-end': {
-        'default': 182,
-        'type': float,
-        'help': "End angle for rotary stage alignment with beam (deg)"},
-    'angle-step': {
-        'default': 0.1,
-        'type': float,
-        'help': "End angle for rotary stage alignment with beam (deg)"},
-    }
-
-SECTIONS['theta_alignment'] = {
-    'theta-start': {
-        'default': -1,
-        'type': float,
-        'help': "Start angle for sample theta stage alignment with beam (deg)"},
-    'theta-end': {
-        'default': 1,
-        'type': float,
-        'help': "End angle for sample theta stage alignment with beam (deg)"},
-    'theta-step': {
-        'default': 0.1,
-        'type': float,
-        'help': "End angle for sample theta stage alignment with beam (deg)"},
-    'pos0-x': {
-        'default': 0,
-        'type': float,
-        'help': "Sample X position 0 (mm)"},
-    'pos1-x': {
-        'default': 1,
-        'type': float,
-        'help': "Sample X position 1 (mm)"},
-    }
-
 SECTIONS['mctoptics'] = {
     'mctoptics-prefix':{
         'default': '2bm:MCTOptics:',
@@ -294,11 +239,45 @@ SECTIONS['mctoptics'] = {
         'help': ''},
     }
 
-SPHERE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'rotary_alignment', 'theta_alignment', 'mctoptics')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'sphere', 'find', 'tomoscan', 'rotary_alignment', 'theta_alignment', 'mctoptics')
+SECTIONS['auto'] = {
+    'y-ref': {
+        'default': 5.0,
+        'type': float,
+        'help': 'Hexapod Y excursion for roll/pitch calibration and correction (mm)'},
+    'tilt-threshold': {
+        'default': 0.5,
+        'type': float,
+        'help': 'Max |shift_bottom - shift_top| to accept camera rotation convergence (px)'},
+    'shift-threshold': {
+        'default': 2.0,
+        'type': float,
+        'help': 'Max roll asymmetry |(shift at +Y) - (shift at -Y)| / 2 to accept roll convergence (px)'},
+    'pitch-threshold': {
+        'default': 1.0,
+        'type': float,
+        'help': 'Max |shift_y| to accept pitch convergence (px)'},
+    'max-iterations': {
+        'default': 10,
+        'type': int,
+        'help': 'Maximum iterations per step before aborting'},
+    'calibration-delta-cam': {
+        'default': 0.05,
+        'type': float,
+        'help': 'Camera rotation test delta for sensitivity calibration (deg)'},
+    'calibration-delta-roll': {
+        'default': 0.02,
+        'type': float,
+        'help': 'Roll test delta for sensitivity calibration (deg)'},
+    'calibration-delta-pitch': {
+        'default': 0.01,
+        'type': float,
+        'help': 'Pitch test delta for sensitivity calibration (deg)'},
+    }
 
-ROTARY_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'tomoscan', 'rotary_alignment', 'mctoptics')
-THETA_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'tomoscan', 'theta_alignment', 'mctoptics')
+SAMPLE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics', 'auto')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics', 'auto')
+AUTO_PARAMS = SAMPLE_PARAMS
+
 
 def get_config_name():
     """Get the command line --config option."""
@@ -318,19 +297,84 @@ def get_config_name():
 
 def parse_known_args(parser, subparser=False):
     """
-    Parse arguments from file and then override by the ones specified on the
-    command line. Use *parser* for parsing and is *subparser* is True take into
-    account that there is a value on the command line specifying the subparser.
+    Parse arguments from file and then override them with the ones
+    specified on the command line. If *subparser* is True, detect
+    the subcommand automatically so we can inject config arguments
+    before it.
     """
-    if len(sys.argv) > 1:
-        subparser_value = [sys.argv[1]] if subparser else []
-        config_values = config_to_list(config_name=get_config_name())
-        values = subparser_value + config_values + sys.argv[1:]
-        #print(subparser_value, config_values, values)
-    else:
-        values = ""
+    import difflib
+    argv = sys.argv[1:]
 
-    return parser.parse_known_args(values)[0]
+    # Detect subcommand (first positional arg not starting with '-')
+    subcmd = argv[0] if (subparser and len(argv) > 0 and not argv[0].startswith('-')) else None
+
+    # Read args from config file
+    config_values = config_to_list(config_name=get_config_name())
+
+    # --- FIX: inject config values *after* subcommand, not before ---
+    # so that subparser-level defaults don’t override them
+    if subcmd:
+        values = [subcmd] + config_values + argv[1:]
+    else:
+        values = config_values + argv
+    # ---------------------------------------------------------------
+
+    # First pass: parse using argparse's built-in method
+    args, unknown = parser.parse_known_args(values)
+
+    # -----------------------
+    # Strict unknown argument detection
+    # -----------------------
+    valid_args = [f"--{k}" for section in SECTIONS.values() for k in section.keys()]
+    known_subcommands = []
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            known_subcommands.extend(action.choices.keys())
+
+    real_unknowns = []
+    for u in unknown:
+        if not u.startswith("--"):
+            continue
+        if u in known_subcommands:
+            continue
+        u_clean = u.split("=")[0]
+        if u_clean not in valid_args:
+            real_unknowns.append(u)
+
+    if real_unknowns:
+        print("ERROR: Unknown argument(s):")
+        for bad in real_unknowns:
+            suggestion = difflib.get_close_matches(bad.split("=")[0], valid_args, n=1)
+            if suggestion:
+                print(f"  {bad}  (did you mean {suggestion[0]}?)")
+            else:
+                print(f"  {bad}")
+        sys.exit(1)
+
+    # -----------------------
+    # Missing value detection
+    # -----------------------
+    missing_values = []
+    required_value_flags = [
+        f"--{name}" for section in SECTIONS.values() for name, opts in section.items()
+        if opts.get("action") != "store_true" and opts.get("nargs") in (None, 1)
+    ]
+    # Only check user-supplied CLI args, not config values
+    user_args = argv[1:] if subcmd else argv
+    for i, token in enumerate(user_args):
+        if token in required_value_flags:
+            if i + 1 == len(user_args) or user_args[i + 1].startswith("--"):
+                missing_values.append(token)
+        elif any(token.startswith(flag + "=") for flag in required_value_flags):
+            continue
+
+    if missing_values:
+        print("\nERROR: Missing value(s) for argument(s):")
+        for flag in missing_values:
+            print(f"  {flag}")
+        sys.exit(2)
+
+    return args
 
 
 def config_to_list(config_name=CONFIG_FILE_NAME):
@@ -438,7 +482,7 @@ def show_configs(args):
     log.warning('align status end')
 
 
-def update_sphere(args):
-       # update adjust.conf
-        sections = SPHERE_PARAMS
+def save_sample_params(args):
+       # update align.conf
+        sections = SAMPLE_PARAMS
         write(args.config, args=args, sections=sections)

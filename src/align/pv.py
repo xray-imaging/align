@@ -104,7 +104,14 @@ def init_general_PVs(params):
     global_PVs['SamplePitch']               = PV(params.sample_pitch_pv_name + '.VAL')
     global_PVs['SampleRoll']                = PV(params.sample_roll_pv_name + '.VAL')
     global_PVs['SampleLamino']              = PV(params.sample_lamino_pv_name + '.VAL')
-    global_PVs['Focus']                     = PV(params.focus_pv_name + '.VAL')
+    global_PVs['SampleTableY']              = PV(params.sample_table_y_pv_name + '.VAL')
+    global_PVs['LensSelect']                = PV(params.mctoptics_prefix + 'LensSelect')
+    global_PVs['LensName0']                 = PV(params.mctoptics_prefix + 'Lens0Name')
+    global_PVs['LensName1']                 = PV(params.mctoptics_prefix + 'Lens1Name')
+    global_PVs['LensName2']                 = PV(params.mctoptics_prefix + 'Lens2Name')
+    global_PVs['FocusLens1']                = PV(params.focus_lens_1_pv_name + '.VAL')
+    global_PVs['FocusLens2']                = PV(params.focus_lens_2_pv_name + '.VAL')
+    global_PVs['FocusLens3']                = PV(params.focus_lens_3_pv_name + '.VAL')
 
     # detector pv's
     camera_prefix = params.detector_prefix + 'cam1:' 
@@ -167,6 +174,9 @@ def init_general_PVs(params):
 
     mctoptics_prefix = params.mctoptics_prefix
     global_PVs['ImagePixelSize']            = PV(mctoptics_prefix + 'ImagePixelSize')
+    global_PVs['CameraSelect']              = PV(mctoptics_prefix + 'CameraSelect')
+    global_PVs['CameraRotation1']           = PV(params.camera_rotation_1_pv_name + '.VAL')
+    global_PVs['CameraRotation2']           = PV(params.camera_rotation_2_pv_name + '.VAL')
 
     return global_PVs
 
@@ -202,6 +212,31 @@ def move_sample_out(global_PVs, params):
         position = params.sample_out_y
         log.info('      *** *** Move Sample Y in at: %f' % position)
         global_PVs['SampleY'].put(position, wait=True)
+
+def move_sample_y(global_PVs, target_mm):
+    """Absolute move of hexapod Y to target_mm."""
+    log.info('  *** move_sample_y: moving to %f mm' % target_mm)
+    global_PVs['SampleY'].put(target_mm, wait=True, timeout=120.0)
+
+def move_camera_rotation(global_PVs, params, delta_deg):
+    """Relative move of the active camera rotation motor by delta_deg."""
+    camera_select = global_PVs['CameraSelect'].get(as_string=True)
+    pv_key = 'CameraRotation1' if camera_select == 'Camera 1' else 'CameraRotation2'
+    current = global_PVs[pv_key].get()
+    log.info('  *** move_camera_rotation: %s %+.4f deg (%.4f -> %.4f)' % (pv_key, delta_deg, current, current + delta_deg))
+    global_PVs[pv_key].put(current + delta_deg, wait=True, timeout=60.0)
+
+def move_sample_roll(global_PVs, delta_deg):
+    """Relative move of hexapod roll by delta_deg."""
+    current = global_PVs['SampleRoll'].get()
+    log.info('  *** move_sample_roll: %+.4f deg (%.4f -> %.4f)' % (delta_deg, current, current + delta_deg))
+    global_PVs['SampleRoll'].put(current + delta_deg, wait=True, timeout=60.0)
+
+def move_sample_pitch(global_PVs, delta_deg):
+    """Relative move of hexapod pitch by delta_deg."""
+    current = global_PVs['SamplePitch'].get()
+    log.info('  *** move_sample_pitch: %+.4f deg (%.4f -> %.4f)' % (delta_deg, current, current + delta_deg))
+    global_PVs['SamplePitch'].put(current + delta_deg, wait=True, timeout=60.0)
 
 def move_sample_in(global_PVs, params):
 
