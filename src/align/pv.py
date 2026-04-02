@@ -213,6 +213,31 @@ def move_sample_out(global_PVs, params):
         log.info('      *** *** Move Sample Y in at: %f' % position)
         global_PVs['SampleY'].put(position, wait=True)
 
+def move_sample_y(global_PVs, target_mm):
+    """Absolute move of hexapod Y to target_mm."""
+    log.info('  *** move_sample_y: moving to %f mm' % target_mm)
+    global_PVs['SampleY'].put(target_mm, wait=True, timeout=120.0)
+
+def move_camera_rotation(global_PVs, params, delta_deg):
+    """Relative move of the active camera rotation motor by delta_deg."""
+    camera_select = global_PVs['CameraSelect'].get(as_string=True)
+    pv_key = 'CameraRotation1' if camera_select == 'Camera 1' else 'CameraRotation2'
+    current = global_PVs[pv_key].get()
+    log.info('  *** move_camera_rotation: %s %+.4f deg (%.4f -> %.4f)' % (pv_key, delta_deg, current, current + delta_deg))
+    global_PVs[pv_key].put(current + delta_deg, wait=True, timeout=60.0)
+
+def move_sample_roll(global_PVs, delta_deg):
+    """Relative move of hexapod roll by delta_deg."""
+    current = global_PVs['SampleRoll'].get()
+    log.info('  *** move_sample_roll: %+.4f deg (%.4f -> %.4f)' % (delta_deg, current, current + delta_deg))
+    global_PVs['SampleRoll'].put(current + delta_deg, wait=True, timeout=60.0)
+
+def move_sample_pitch(global_PVs, delta_deg):
+    """Relative move of hexapod pitch by delta_deg."""
+    current = global_PVs['SamplePitch'].get()
+    log.info('  *** move_sample_pitch: %+.4f deg (%.4f -> %.4f)' % (delta_deg, current, current + delta_deg))
+    global_PVs['SamplePitch'].put(current + delta_deg, wait=True, timeout=60.0)
+
 def move_sample_in(global_PVs, params):
 
     axis = params.flat_field_axis

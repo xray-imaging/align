@@ -7,9 +7,13 @@ align
    :align: center
    :alt: tomo_user
 
-**align** is a command-line tool that automatically determines the detector pixel size, positions the scintillator at the lens focal plane, aligns the rotation axis tilt and pitch, and centers the rotation axis within the detector’s field of view.
+**align** is a command-line tool that automatically determines the detector pixel size, aligns the rotation axis tilt and pitch, and centers the rotation axis within the detector’s field of view.
 
-**align** works in combination with a regular sample mounted on top of the rotary stage, ensuring it remains within the field of view when the rotation axis is at 0° and 180°. Alternatively, a high-contrast sample such as a wooden stick can also be used effectively.
+**align** works with a regular sample mounted on top of the rotary stage, keeping it within the field of view at 0° and 180°. Three commands are available:
+
+- ``align resolution`` — measures the detector pixel size.
+- ``align rotation`` — single-pass measurement of the rotation axis position; prompts the operator to apply the correction.
+- ``align auto`` — fully automated 4-step sequence: camera rotation → roll → pitch → sample X centering, with a built-in calibration pass to determine motor sensitivities.
 
 
 Installation
@@ -26,6 +30,13 @@ in a prepared conda environment.
 
 Usage
 =====
+
+.. note::
+
+   **Prerequisite:** Before running any alignment command, the DMagic step must be completed to
+   set the correct sample IN and OUT positions for the current sample/lens geometry. If the sample
+   does not fully clear the beam during flat-field acquisition, ``align resolution`` will return
+   ``inf μm/pixel`` and downstream alignment will be unreliable.
 
 The first step is to measure the image pixel size. Install the test sample on the rotary stage and select a lens (for example, 10×). Next, determine the X position where the sample moves out of the field of view (for instance, –7). This position will be used to acquire a white-field image, while the in-position (e.g., 0) corresponds to the sample in the field of view. Both images are required because align operates on normalized images.
 
@@ -160,38 +171,78 @@ Once the pixel size has been measured, you can proceed to align the rotation axi
        *** Yes or No (Y/N):
 
 
-This command acquires two images of the sample: one at 0° and another at 180°. It then analyzes these images to determine the position of the rotation axis at three points — the top, middle, and bottom of the image.
+This command acquires two images of the sample: one at 0° and another at 180°. It then analyzes these images to determine the position of the rotation axis at three points — the top, center, and bottom of the image — as well as the vertical (Y) shift, which is a measure of pitch.
 
-If the rotation axis is perfectly aligned with the detector columns, the measured axis positions at all three locations will be identical. If discrepancies are observed, the camera rotation must be adjusted. This adjustment is motorized and can be performed through the Optique Peter instrument controls.
+The manual alignment procedure proceeds as follows:
 
-Once this is completed, you can proceed to align the vertical stage of the hexapod. To do this, move the hexapod Y axis up by, for example, +8 mm, and run::
+1. **Camera rotation** — if ``top``, ``center``, and ``bottom`` differ, adjust the Optique Peter camera rotation motor until they are equal (tilt < 0.5 px).
+2. **Roll** — move the hexapod Y axis to an elevated position (e.g., +5 mm), re-run ``align rotation``, then move to –5 mm and re-run. If the overall shift differs between the two Y positions, adjust the hexapod roll until they match.
+3. **Pitch** — at the elevated Y position, adjust the hexapod pitch motor to zero the Y-component of the shift (``rotation axis shift Y``). Pitch is the tilt of the rotation axis along the beam (Z direction) and should be corrected last.
 
-    (ops) 2bmb@arcturus$ align rotation
+.. warning:: Make sure the hexapod X can still reach the white-field position when its Y is at the elevated/lowered location.
+
+align auto
+----------
+
+``align auto`` runs all three steps above in sequence without manual iteration, using a built-in calibration pass to determine the sensitivity of each motor before applying corrections::
+
+    (ops) 2bmb@arcturus$ align auto
+
     ...
-    2025-10-22 11:22:12,618 -   *** rotation axis shift -0.820000 pixels ***
-    2025-10-22 11:22:12,618 -   *** rotation axis shift -0.000279 mm ***
-    2025-10-22 11:22:12,619 -   *** Additional values:  ***
-    2025-10-22 11:22:12,619 -   *** rotation axis top    -0.635000 pixels ***
-    2025-10-22 11:22:12,619 -   *** rotation axis center -0.665000 pixels ***
-    2025-10-22 11:22:12,619 -   *** rotation axis bottom -1.190000 pixels ***
+    [auto] pixel size: 0.6905 um/px
+    [auto] calibrating camera rotation sensitivity ...
+    [auto] K_cam = 142.3 px/deg
+    [auto] Roll/pitch steps require moving sample Y to +/-Y_ref.
+    [auto] Default Y_ref = 5.0 mm. Hexapod nominal range: +/-10 mm (may be less).
+    [auto] Larger Y_ref = higher sensitivity. Must stay within sample FOV.
+      Enter Y_ref in mm [Enter = 5.0]:
+    [auto] calibrating roll and pitch sensitivity at Y = 5.0 mm ...
+    [auto] K_roll  = 99.2 px/deg at Y = 5.0 mm
+    [auto] K_pitch = 7140.0 px/deg at Y = 5.0 mm
+    [auto] === Step 1: Camera rotation convergence ===
+    [auto] step 1 iter 1: tilt = +1.24 px
+    [auto] step 1 iter 2: tilt = +0.08 px
+    [auto] step 1 converged (tilt = +0.08 px < 0.5 px)
+    [auto] === Step 2: Roll convergence at Y = ±5.0 mm ===
+    [auto] step 2 iter 1: roll_error = +2.53 px
+    [auto] step 2 iter 2: roll_error = +0.41 px
+    [auto] step 2 converged (roll_error = +0.41 px < 2.0 px)
+    [auto] re-checking camera rotation after roll adjustment ...
+    [auto] === Step 3: Pitch convergence at Y = 5.0 mm ===
+    [auto] step 3 iter 1: shift_y = +1.83 px
+    [auto] step 3 iter 2: shift_y = -0.21 px
+    [auto] step 3 converged (shift_y = -0.21 px < 1.0 px)
+    [auto] === Step 4: Sample X centering ===
+    [auto] step 4: centering sample X by +0.0021 mm (+3.0 px)
+    [auto] === Alignment complete ===
 
-Next, move the hexapod Y axis down by, for example, –8 mm, and run the same command again::
+The operator is prompted once to confirm the Y excursion range and verify the sample remains
+in the field of view at both +Y_ref and –Y_ref before the roll/pitch steps begin.
 
-    (ops) 2bmb@arcturus$ align rotation
-    ...
-    2025-10-22 11:25:08,591 -   *** rotation axis shift 5.055000 pixels ***
-    2025-10-22 11:25:08,591 -   *** rotation axis shift 0.001719 mm ***
-    2025-10-22 11:25:08,591 -   *** Additional values:  ***
-    2025-10-22 11:25:08,591 -   *** rotation axis top    5.430000 pixels ***
-    2025-10-22 11:25:08,591 -   *** rotation axis center 4.945000 pixels ***
-    2025-10-22 11:25:08,591 -   *** rotation axis bottom 4.840000 pixels ***
+``align auto`` requires that ``align resolution`` has been run at least once in the current
+session (pixel size must be stored in ``align.conf``).
 
+Key parameters for ``align auto`` (set in ``align.conf`` or on the command line):
 
-If there is a difference in the measured rotation axis position between the two runs, you will need to adjust the hexapod roll until the measurements are consistent.
-
-
-.. warning:: Make sure the hexapod X can still reach the white field position when its Y is in the up/down location.
-
++--------------------------+----------+----------------------------------------------------------+
+| Parameter                | Default  | Description                                              |
++==========================+==========+==========================================================+
+| ``--y-ref``              | 5.0 mm   | Hexapod Y excursion for roll/pitch calibration           |
++--------------------------+----------+----------------------------------------------------------+
+| ``--tilt-threshold``     | 0.5 px   | Camera rotation convergence criterion                    |
++--------------------------+----------+----------------------------------------------------------+
+| ``--shift-threshold``    | 2.0 px   | Roll convergence criterion                               |
++--------------------------+----------+----------------------------------------------------------+
+| ``--pitch-threshold``    | 1.0 px   | Pitch convergence criterion                              |
++--------------------------+----------+----------------------------------------------------------+
+| ``--max-iterations``     | 10       | Max iterations per step before aborting                  |
++--------------------------+----------+----------------------------------------------------------+
+| ``--calibration-delta-cam`` | 0.05°  | Camera rotation test delta for sensitivity calibration  |
++--------------------------+----------+----------------------------------------------------------+
+| ``--calibration-delta-roll`` | 0.02° | Roll test delta for sensitivity calibration             |
++--------------------------+----------+----------------------------------------------------------+
+| ``--calibration-delta-pitch`` | 0.01° | Pitch test delta for sensitivity calibration           |
++--------------------------+----------+----------------------------------------------------------+
 
 To list of all available options::
 
@@ -204,11 +255,12 @@ To list of all available options::
       --version      show program's version number and exit
 
     Commands:
-      
+
         init         Create configuration file
         status       Show the align cli status
         resolution   Find the image resolution
         rotation     Align rotation axis
+        auto         Automated 4-step alignment (camera rotation, roll, pitch, sample X)
 
 
 Configuration File

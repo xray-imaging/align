@@ -239,8 +239,44 @@ SECTIONS['mctoptics'] = {
         'help': ''},
     }
 
-SAMPLE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics')
-NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics')
+SECTIONS['auto'] = {
+    'y-ref': {
+        'default': 5.0,
+        'type': float,
+        'help': 'Hexapod Y excursion for roll/pitch calibration and correction (mm)'},
+    'tilt-threshold': {
+        'default': 0.5,
+        'type': float,
+        'help': 'Max |shift_bottom - shift_top| to accept camera rotation convergence (px)'},
+    'shift-threshold': {
+        'default': 2.0,
+        'type': float,
+        'help': 'Max roll asymmetry |(shift at +Y) - (shift at -Y)| / 2 to accept roll convergence (px)'},
+    'pitch-threshold': {
+        'default': 1.0,
+        'type': float,
+        'help': 'Max |shift_y| to accept pitch convergence (px)'},
+    'max-iterations': {
+        'default': 10,
+        'type': int,
+        'help': 'Maximum iterations per step before aborting'},
+    'calibration-delta-cam': {
+        'default': 0.05,
+        'type': float,
+        'help': 'Camera rotation test delta for sensitivity calibration (deg)'},
+    'calibration-delta-roll': {
+        'default': 0.02,
+        'type': float,
+        'help': 'Roll test delta for sensitivity calibration (deg)'},
+    'calibration-delta-pitch': {
+        'default': 0.01,
+        'type': float,
+        'help': 'Pitch test delta for sensitivity calibration (deg)'},
+    }
+
+SAMPLE_PARAMS = ('epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics', 'auto')
+NICE_NAMES = ('general', 'epics-pvs', 'shutter', 'detector', 'sample-motion', 'resolution', 'tomoscan', 'mctoptics', 'auto')
+AUTO_PARAMS = SAMPLE_PARAMS
 
 
 def get_config_name():

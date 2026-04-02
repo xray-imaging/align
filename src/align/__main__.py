@@ -58,6 +58,7 @@ from datetime import datetime
 from align import config, __version__
 from align import log
 from align import sample
+from align import auto
 
 
 def init(args):
@@ -77,6 +78,9 @@ def run_sample_resolution(args):
 def run_sample_rotation(args):
     sample.adjust('center', args)
 
+def run_auto(args):
+    auto.align_auto(args)
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -91,6 +95,7 @@ def main():
         ('status',             run_status,            sample_params,                  "Show the align cli status"),
         ('resolution',         run_sample_resolution, sample_params,                  "Find the image resolution"),
         ('rotation',           run_sample_rotation,   sample_params,                  "Align rotation axis"),
+        ('auto',               run_auto,              config.AUTO_PARAMS,             "Automated 4-step alignment (camera rotation, roll, pitch, sample X)"),
     ]
 
     subparsers = parser.add_subparsers(title="Commands", metavar='')
