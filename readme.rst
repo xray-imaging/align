@@ -33,10 +33,10 @@ Usage
 
 .. note::
 
-   **Prerequisite:** Before running any alignment command, the DMagic step must be completed to
-   set the correct sample IN and OUT positions for the current sample/lens geometry. If the sample
-   does not fully clear the beam during flat-field acquisition, ``align resolution`` will return
-   ``inf μm/pixel`` and downstream alignment will be unreliable.
+   **Prerequisite:** Before running any alignment command, the correct sample IN and OUT positions
+   must be set for the current sample/lens geometry. If the sample does not fully clear the beam
+   during flat-field acquisition, ``align resolution`` will return ``inf μm/pixel`` and downstream
+   alignment will be unreliable.
 
 The first step is to measure the image pixel size. Install the test sample on the rotary stage and select a lens (for example, 10×). Next, determine the X position where the sample moves out of the field of view (for instance, –7). This position will be used to acquire a white-field image, while the in-position (e.g., 0) corresponds to the sample in the field of view. Both images are required because align operates on normalized images.
 

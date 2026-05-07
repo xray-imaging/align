@@ -162,7 +162,7 @@ with PdfPages(OUTPUT) as pdf:
     # ── PAGE 2: Flat field / resolution workflow note + setup log ─────────────
     fig = plt.figure(figsize=(8.5, 11))
     add_header(fig, 'Setup Issues & Flat-Field Workflow Dependency',
-               'Why align resolution must follow the DMagic sample-positioning step')
+               'Why align resolution must follow the sample IN/OUT positioning step')
 
     ax = fig.add_axes([0.06, 0.05, 0.88, 0.86])
     ax.axis('off')
@@ -218,17 +218,18 @@ with PdfPages(OUTPUT) as pdf:
         "The same corrupted normalization would propagate to align rotation if pixel size were\n"
         "accepted from a failed resolution run.\n\n"
         "This establishes a critical prerequisite chain:\n\n"
-        "     DMagic step\n"
-        "     (sets correct sample IN and OUT positions for the current sample geometry)\n"
+        "     Set sample IN / OUT positions\n"
+        "     (correct sample IN and OUT positions for the current sample geometry)\n"
         "           ↓\n"
         "     align resolution\n"
         "     (flat field acquired with sample fully OUT → clean normalization → valid pixel size)\n"
         "           ↓\n"
         "     align rotation\n"
         "     (uses pixel size from above; cross-correlation valid because normalization is clean)\n\n"
-        "The DMagic step is therefore not optional bookkeeping — it is a correctness prerequisite\n"
-        "for both align resolution and align rotation. Any automation model must enforce this order\n"
-        "and verify that pixel size is finite before proceeding to rotation alignment."
+        "Setting the sample IN / OUT positions is therefore not optional bookkeeping — it is a\n"
+        "correctness prerequisite for both align resolution and align rotation. Any automation model\n"
+        "must enforce this order and verify that pixel size is finite before proceeding to rotation\n"
+        "alignment."
     )
     ax.text(0.0, 0.62, workflow_text, ha='left', va='top', fontsize=8.8,
             color=COLORS['text'], transform=ax.transAxes,
@@ -408,14 +409,14 @@ with PdfPages(OUTPUT) as pdf:
             'Tilt (bottom − top) at Y = 0 is < 2 px across all runs — camera rotation is well converged.',
             'Camera rotation correction should be re-verified after roll and pitch adjustments.',
         ]),
-        ('5.  Flat field prerequisite: DMagic step must precede align resolution', '#8b0000', [
+        ('5.  Flat field prerequisite: sample IN/OUT positions must be set before align resolution', '#8b0000', [
             'Two resolution runs returned inf µm/px because the sample partially blocked the flat field.',
             'Corrupted flat field → corrupted normalized image → cross-correlation returns (0,0) → inf.',
-            'The DMagic step sets correct sample IN/OUT positions for the current sample geometry.',
+            'Correct sample IN/OUT positions must be set for the current sample/lens geometry.',
             'Automation must check pixel_size is finite before proceeding to align rotation.',
         ]),
         ('6.  Proposed 4-step automation sequence', '#1a5c1a', [
-            '  PRE  DMagic step → sets sample IN/OUT positions for current sample/lens geometry.',
+            '  PRE  Set sample IN/OUT positions for current sample/lens geometry.',
             '  PRE  align resolution → confirm pixel size is finite (abort if inf).',
             '  [1]  align rotation at Y = 0 → adjust camera rotation until |tilt| < 0.5 px.',
             '  [2]  Operator confirms Y_ref (suggest ±5 mm; larger = more sensitive).',

@@ -20,8 +20,8 @@ from the 2026-03-20 and 2026-04-01 sessions.
 Before running any rotation alignment, two prerequisite steps must be completed in order:
 
 ```
-1. DMagic step
-   Sets the correct sample IN and OUT positions for the current sample/lens geometry.
+1. Set sample IN / OUT positions
+   Set the correct sample IN and OUT positions for the current sample/lens geometry.
    ↓
 2. align resolution
    Acquires flat field with sample fully OUT of beam → clean normalization → valid pixel size.
@@ -175,7 +175,7 @@ This step is a direct single-shot correction — no iteration needed.
 
 ```python
 # Prerequisites
-assert dmagic_step_completed()
+assert sample_in_out_positions_set()
 pixel_size = run_align_resolution()
 assert pixel_size != inf, "Sample did not clear beam for flat field — abort"
 
